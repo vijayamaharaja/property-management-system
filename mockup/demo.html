@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UK Property Management System</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .card {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .dashboard-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .stats-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .stat-box {
+            background-color: #f1f3f5;
+            border-radius: 5px;
+            padding: 15px;
+            width: calc(25% - 15px);
+            min-width: 150px;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .button-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        .button {
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .primary-button {
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+        }
+        .success-button {
+            background-color: #198754;
+            color: white;
+            border: none;
+        }
+        .search-container {
+            display: flex;
+            gap: 10px;
+            background-color: #f1f3f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .search-input {
+            padding: 8px;
+            border-radius: 3px;
+            border: 1px solid #ced4da;
+            font-size: 14px;
+        }
+        .property-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .property-card {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: calc(50% - 10px);
+            min-width: 300px;
+        }
+        .property-image {
+            height: 200px;
+            background-color: #e9ecef;
+            position: relative;
+        }
+        .property-image::after {
+            content: "Property Image";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #6c757d;
+        }
+        .property-details {
+            padding: 15px;
+        }
+        .property-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .property-location {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+        .property-price {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .book-button {
+            width: 100%;
+            padding: 8px 0;
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        @media (max-width: 768px) {
+            .stats-container {
+                flex-direction: column;
+            }
+            .stat-box {
+                width: 100%;
+            }
+            .search-container {
+                flex-direction: column;
+            }
+            .property-card {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1 class="dashboard-title">Property Manager Dashboard</h1>
+
+    <div class="stats-container">
+        <div class="stat-box">
+            <div class="stat-label">Total Properties</div>
+            <div class="stat-value">24</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Active Bookings</div>
+            <div class="stat-value">18</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Revenue</div>
+            <div class="stat-value">£9,850</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Occupancy Rate</div>
+            <div class="stat-value">76%</div>
+        </div>
+    </div>
+
+    <div class="button-container">
+        <button class="button primary-button">+ Add Property</button>
+        <button class="button success-button">View Bookings</button>
+    </div>
+</div>
+
+<div class="card">
+    <h2 class="dashboard-title">Property Search</h2>
+
+    <div class="search-container">
+        <input type="text" class="search-input" style="width: 25%;" placeholder="Location">
+        <input type="text" class="search-input" style="width: 15%;" placeholder="Check-in">
+        <input type="text" class="search-input" style="width: 15%;" placeholder="Check-out">
+        <input type="text" class="search-input" style="width: 10%;" placeholder="Guests">
+        <button class="button primary-button" style="width: 20%;">Search</button>
+    </div>
+
+    <div class="property-container">
+        <div class="property-card">
+            <div class="property-image"></div>
+            <div class="property-details">
+                <h3 class="property-title">Central London Flat</h3>
+                <p class="property-location">Kensington • 2 BR • 2 Bath</p>
+                <p class="property-price">£120 per night</p>
+                <button class="book-button">Book Now</button>
+            </div>
+        </div>
+
+        <div class="property-card">
+            <div class="property-image"></div>
+            <div class="property-details">
+                <h3 class="property-title">Cornwall Cottage</h3>
+                <p class="property-location">Coastal • 3 BR • 2 Bath</p>
+                <p class="property-price">£245 per night</p>
+                <button class="book-button">Book Now</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

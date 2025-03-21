@@ -1,0 +1,94 @@
+#!/bin/sh
+
+# Path to the header file
+HEADER_FILE="githooks/header.txt"
+
+# Temporary file for processing
+TEMP_FILE=$(mktemp)
+
+# Function to add header with dynamic date and year if not present
+add_header_if_absent() {
+    file=$1
+    header=$2
+
+    echo "Checking file: $file"
+
+    # Get the current date and year
+    current_date=$(date +"%Y-%m-%d")
+    current_year=$(date +"%Y")
+
+    # Read the header file and substitute the date and year
+    header_content=$(sed "s/{{DATE}}/$current_date/;s/{{YEAR}}/$current_year/" "$header")
+
+    # Get the first few lines of the file to compare against the header
+    header_line_count=$(echo "$header_content" | wc -l)
+    file_content=$(head -n "$header_line_count" "$file" | tr -d '\r')
+
+#     Output header and file content for comparison - uncomment if debugging
+#    echo "Header content:"
+#    echo "$header_content"
+#    echo "File content:"
+#    echo "$file_content"
+
+    # Check if the header is already present
+    if echo "$file_content" | grep -Fxq "$header_content"; then
+        echo "Header already present in $file"
+    else
+        echo "Adding header to $file"
+        echo "$header_content" | cat - "$file" > "$TEMP_FILE" && mv "$TEMP_FILE" "$file"
+        git add "$file"
+    fi
+}
+
+# Loop through all staged files
+for file in $(git diff --cached --name-only --diff-filter=ACM | grep -E '\.java$|\.kt$\.'); do
+    add_header_if_absent "$file" "$HEADER_FILE"
+done
+
+## For front end - TODO need to implement
+# Path to the directory where .js files are located
+TARGET_DIRECTORY="property-management-system/frontend"
+
+# Loop through all staged .js files in the frontend directory
+for file in $(git diff --cached --name-only --diff-filter=ACM | grep -E "$TARGET_DIRECTORY/.*\.(js|jsx|tsx)$"); do
+    add_header_if_absent "$file" "$HEADER_FILE"
+done
+
+
+# Clean up temporary file
+rm -f "$TEMP_FILE"
+
+echo "Header check and addition complete."
+
+# Initialize a flag to track errors
+error_flag=0
+
+# Function to check a configuration file
+check_config() {
+  config_file="$1"
+  expected_value="$2"
+
+  if [ ! -f "$config_file" ]; then
+    echo "Error: The file '$config_file' does not exist."
+    error_flag=1
+    return
+  fi
+
+  # Check if the value exists anywhere in the file
+  if grep -qF "$expected_value" "$config_file"; then
+    echo "The '$expected_value' is set correctly in '$config_file'."
+  else
+    echo "Error: The '$expected_value' is not set correctly in '$config_file'."
+    error_flag=1
+  fi
+}
+
+# Perform the checks
+check_config "./property-catalog-service/src/main/resources/application.properties"
+
+# Exit with error flag status
+if [ "$error_flag" -eq 1 ]; then
+  exit 1
+else
+  exit 0
+fi

@@ -1,0 +1,41 @@
+#!/bin/sh
+
+COMMIT_MSG_FILE=$1
+
+# Read the commit message
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Define allowed prefixes and ticket format
+ALLOWED_PREFIXES="^chore|^fix|^feat"
+TICKET_PREFIX="DEV"
+
+# Define the regex patterns
+PREFIX_REGEX="^($ALLOWED_PREFIXES)\("  # Ensure prefix is at the start and followed by '('
+TICKET_REGEX="\($TICKET_PREFIX-\d+\)"
+COLON_SPACE_REGEX=": "
+
+# Step 1: Check if the commit message starts with a valid prefix (chore, fix, feat)
+if ! echo "$COMMIT_MSG" | grep -qE "$PREFIX_REGEX"; then
+    echo "Error: Commit message does not start with a valid prefix (chore, fix, feat)."
+    exit 1
+fi
+
+# Step 2: Check if the commit message contains a valid ticket number
+if ! echo "$COMMIT_MSG" | grep -qE "$TICKET_REGEX"; then
+    echo "Error: Commit message does not contain a valid ticket number in the format ($TICKET_PREFIX-1234)."
+    exit 1
+fi
+
+# Step 3: Check if the commit message contains a colon and a space
+if ! echo "$COMMIT_MSG" | grep -qE "$COLON_SPACE_REGEX"; then
+    echo "Error: Commit message does not contain a colon and a space followed by a short message."
+    exit 1
+fi
+
+# Step 4: Check if the commit message exceeds 79 characters
+if [ ${#COMMIT_MSG} -gt 79 ]; then
+    echo "Error: Commit message exceeds 79 characters."
+    exit 1
+fi
+
+echo "Commit message format is correct."
