@@ -89,20 +89,10 @@ public class PropertyService {
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or @propertySecurity.isOwner(#id, authentication.name)")
-    public PropertyDto updateProperty(Long id, PropertyDto propertyDto, String username) {
+    public PropertyDto updateProperty(Long id, PropertyDto propertyDto) {
         Property property = propertyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Property not found with id: " + id));
 
-        // TODO: Can be removed as currently controlled from SpringSecurity - MethodSecurity
-//        User user = userRepository.findByUsername(username)
-//                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-//
-//        // Check if the current user is the owner or an admin
-//        if (!property.getOwner().getId().equals(user.getId()) &&
-//                !user.getRoles().contains("ROLE_ADMIN")) {
-//            throw new AccessDeniedException("You don't have permission to update this property");
-//        }
-//
         propertyMapper.updateEntityFromDto(propertyDto, property);
         Property updatedProperty = propertyRepository.save(property);
         return propertyMapper.toDto(updatedProperty);
@@ -110,19 +100,9 @@ public class PropertyService {
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or @propertySecurity.isOwner(#id, authentication.name)")
-    public void deleteProperty(Long id, String username) {
+    public void deleteProperty(Long id) {
         Property property = propertyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Property not found with id: " + id));
-
-        // TODO can be removed as above
-//        User user = userRepository.findByUsername(username)
-//                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-//
-//        // Check if the current user is the owner or an admin
-//        if (!property.getOwner().getId().equals(user.getId()) &&
-//                !user.getRoles().contains("ROLE_ADMIN")) {
-//            throw new AccessDeniedException("You don't have permission to delete this property");
-//        }
 
         propertyRepository.delete(property);
     }

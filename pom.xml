@@ -19,13 +19,6 @@
 
     <modules>
         <module>property-catalog-service</module>
-<!--        <module>user-management-service</module>-->
-<!--        <module>booking-service</module>-->
-<!--        <module>payment-processing-service</module>-->
-<!--        <module>dashboard-reporting-service</module>-->
-<!--        <module>notification-service</module>-->
-<!--        <module>api-gateway</module>-->
-<!--        <module>property-management-webapp</module>-->
     </modules>
 
     <build>

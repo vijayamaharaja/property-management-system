@@ -1,17 +1,15 @@
 package com.test89.property_catalog_service.controller;
 
 import com.test89.property_catalog_service.dto.UserDto;
-import com.test89.property_catalog_service.dto.UserRegistrationDto;
 import com.test89.property_catalog_service.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("${api.prefix}/users")
 @RequiredArgsConstructor
 public class UserController {
 

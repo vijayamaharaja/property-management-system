@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/properties")
+@RequestMapping("${api.prefix}/properties")
 @Tag(name = "Properties", description = "APIs for managing and querying properties")
 public class PropertyController {
 
@@ -81,7 +81,7 @@ public class PropertyController {
             @PathVariable Long id,
             @Valid @RequestBody PropertyDto propertyDto,
             Authentication authentication) {
-        PropertyDto updatedProperty = propertyService.updateProperty(id, propertyDto, authentication.getName());
+        PropertyDto updatedProperty = propertyService.updateProperty(id, propertyDto);
         return ResponseEntity.ok(updatedProperty);
     }
 
@@ -89,7 +89,7 @@ public class PropertyController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProperty(
             @PathVariable Long id, Authentication authentication) {
-        propertyService.deleteProperty(id, authentication.getName());
+        propertyService.deleteProperty(id);
         return ResponseEntity.noContent().build();
     }
 }

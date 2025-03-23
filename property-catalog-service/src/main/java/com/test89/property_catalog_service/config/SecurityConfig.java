@@ -7,6 +7,7 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.test89.property_catalog_service.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -45,6 +46,8 @@ import java.util.UUID;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
+    @Value("${api.prefix}")
+    private String apiPrefix;
 
     // Order 1 : Implement OAuth2 authorisation server
     @Bean
@@ -68,23 +71,49 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
+                .securityMatcher("/api/**") // Only apply security to API endpoints
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/auth/**", "/api/properties/public/**", "/h2-console/**",
-                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(
+                                apiPrefix + "/auth/**",
+                                apiPrefix + "/properties/public/**"
+                        ).permitAll()
+                        .requestMatchers(apiPrefix + "/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
-                .formLogin(Customizer.withDefaults())
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
+                .formLogin(form -> form
+                        .defaultSuccessUrl("/swagger-ui/index.html", true) // TODO need to change this to proper UI
+                )
                 .headers(headers -> headers
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                 )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .userDetailsService(userDetailsService);
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .userDetailsService(userDetailsService)
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
         ;
 
         return http.build();
     }
+
+    // Separate security filter chain for Swagger and other miscellaneous endpoints
+    @Bean
+    @Order(3)
+    public SecurityFilterChain swaggerAndMiscSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher(
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/h2-console/**",
+                        "/login"
+                )
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
+                .formLogin(form -> form.defaultSuccessUrl("/swagger-ui/index.html", true)); // ✅ Optional for consistency
+
+        return http.build();
+    }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
