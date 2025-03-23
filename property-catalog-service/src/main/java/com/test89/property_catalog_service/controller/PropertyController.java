@@ -2,6 +2,8 @@ package com.test89.property_catalog_service.controller;
 
 import com.test89.property_catalog_service.dto.PropertyDto;
 import com.test89.property_catalog_service.service.PropertyService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +16,7 @@ import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api/properties")
+@Tag(name = "Properties", description = "APIs for managing and querying properties")
 public class PropertyController {
 
     private final PropertyService propertyService;
@@ -22,11 +25,13 @@ public class PropertyController {
         this.propertyService = propertyService;
     }
 
+    @Operation(summary = "Get all available properties")
     @GetMapping("/public")
     public ResponseEntity<Page<PropertyDto>> getAvailableProperties(Pageable pageable) {
         return ResponseEntity.ok(propertyService.getAvailableProperties(pageable));
     }
 
+    @Operation(summary = "Search properties by criteria")
     @GetMapping("/public/search")
     public ResponseEntity<Page<PropertyDto>> searchProperties(
             @RequestParam(required = false, defaultValue = "0") BigDecimal minPrice,
@@ -38,28 +43,33 @@ public class PropertyController {
         return ResponseEntity.ok(propertyService.searchProperties(minPrice, maxPrice, bedrooms, bathrooms, city, pageable));
     }
 
+    @Operation(summary = "Get properties by type")
     @GetMapping("/public/type/{type}")
     public ResponseEntity<Page<PropertyDto>> getPropertiesByType(
             @PathVariable String type, Pageable pageable) {
         return ResponseEntity.ok(propertyService.getPropertiesByType(type, pageable));
     }
 
+    @Operation(summary = "Get property details by ID")
     @GetMapping("/public/{id}")
     public ResponseEntity<PropertyDto> getPropertyById(@PathVariable Long id) {
         return ResponseEntity.ok(propertyService.getPropertyById(id));
     }
 
+    @Operation(summary = "Get all properties (requires authentication)")
     @GetMapping
     public ResponseEntity<Page<PropertyDto>> getAllProperties(Pageable pageable) {
         return ResponseEntity.ok(propertyService.getAllProperties(pageable));
     }
 
+    @Operation(summary = "Get properties owned by a specific user")
     @GetMapping("/owner/{ownerId}")
     public ResponseEntity<Page<PropertyDto>> getPropertiesByOwner(
             @PathVariable Long ownerId, Pageable pageable) {
         return ResponseEntity.ok(propertyService.getPropertiesByOwner(ownerId, pageable));
     }
 
+    @Operation(summary = "Create a new property")
     @PostMapping
     public ResponseEntity<PropertyDto> createProperty(
             @Valid @RequestBody PropertyDto propertyDto, Authentication authentication) {
@@ -67,6 +77,7 @@ public class PropertyController {
         return new ResponseEntity<>(createdProperty, HttpStatus.CREATED);
     }
 
+    @Operation(summary = "Update an existing property by ID")
     @PutMapping("/{id}")
     public ResponseEntity<PropertyDto> updateProperty(
             @PathVariable Long id,
@@ -76,6 +87,7 @@ public class PropertyController {
         return ResponseEntity.ok(updatedProperty);
     }
 
+    @Operation(summary = "Delete a property by ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProperty(
             @PathVariable Long id, Authentication authentication) {
