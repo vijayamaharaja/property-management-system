@@ -7,6 +7,7 @@ import com.test89.property_catalog_service.exception.ResourceNotFoundException;
 import com.test89.property_catalog_service.mapper.PropertyMapper;
 import com.test89.property_catalog_service.repository.PropertyRepository;
 import com.test89.property_catalog_service.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
@@ -19,17 +20,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class PropertyService {
 
     private final PropertyRepository propertyRepository;
     private final UserRepository userRepository;
     private final PropertyMapper propertyMapper;
-
-    public PropertyService(PropertyRepository propertyRepository, UserRepository userRepository, PropertyMapper propertyMapper) {
-        this.propertyRepository = propertyRepository;
-        this.userRepository = userRepository;
-        this.propertyMapper = propertyMapper;
-    }
 
     @Transactional(readOnly = true)
     public Page<PropertyDto> getAllProperties(Pageable pageable) {

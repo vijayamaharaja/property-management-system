@@ -7,21 +7,18 @@ import com.test89.property_catalog_service.exception.ResourceNotFoundException;
 import com.test89.property_catalog_service.exception.UserAlreadyExistsException;
 import com.test89.property_catalog_service.mapper.UserMapper;
 import com.test89.property_catalog_service.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-
-    public UserService(UserRepository userRepository, UserMapper userMapper) {
-        this.userRepository = userRepository;
-        this.userMapper = userMapper;
-    }
 
     @Transactional
     public UserDto registerUser(UserRegistrationDto registrationDto) {
