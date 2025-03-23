@@ -26,7 +26,7 @@ public class UserInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         if (!initializeDefaultUsers) {
-            return; // Skip user initialization if disabled
+            return; // Skip user initialization if disabled from application properties
         }
 
         // Hardcoding a couple of users to the system with default username and password just for demo purposes
