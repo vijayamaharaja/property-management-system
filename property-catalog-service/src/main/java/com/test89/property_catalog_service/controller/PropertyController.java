@@ -5,6 +5,7 @@ import com.test89.property_catalog_service.service.PropertyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -15,15 +16,12 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/properties")
 @Tag(name = "Properties", description = "APIs for managing and querying properties")
 public class PropertyController {
 
     private final PropertyService propertyService;
-
-    public PropertyController(PropertyService propertyService) {
-        this.propertyService = propertyService;
-    }
 
     @Operation(summary = "Get all available properties")
     @GetMapping("/public")
