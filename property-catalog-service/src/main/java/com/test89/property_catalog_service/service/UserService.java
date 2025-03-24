@@ -13,12 +13,15 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Set;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final EmailService emailService;
 
     @Transactional
     public UserDto registerUser(UserRegistrationDto registrationDto) {
@@ -31,7 +34,14 @@ public class UserService {
         }
 
         User user = userMapper.fromRegistrationDto(registrationDto);
+        if (user.getRoles() == null || user.getRoles().isEmpty()) {
+            user.setRoles(Set.of("ROLE_USER"));
+        }
         User savedUser = userRepository.save(user);
+
+        // send welcome email to new user
+        emailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getFirstName());
+
         return userMapper.toDto(savedUser);
     }
 
