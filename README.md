@@ -13,10 +13,10 @@ You may need to apply appropriate permissions to the script chmod +x ./setup-hoo
 
 # Project Structure and Dependencies
 
-- Spring Boot 3.4.3 with Java 21
+- Spring Boot 3.2.3 with Java 17
 - Spring Security with OAuth2 for secure authentication
 - Spring Data JPA for database operations
-- H2 in-memory database for development (with *PostgreSQL* configuration available for production)
+- PostgreSQL database
 - Lombok for reducing boilerplate code
 - Swagger/OpenAPI for API documentation
 
