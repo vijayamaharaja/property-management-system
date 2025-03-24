@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -54,20 +55,23 @@ public class PropertyController {
         return ResponseEntity.ok(propertyService.getPropertyById(id));
     }
 
-    @Operation(summary = "Get all properties (requires authentication)")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get all properties (Only for authenticated users)")
     @GetMapping
     public ResponseEntity<Page<PropertyDto>> getAllProperties(Pageable pageable) {
         return ResponseEntity.ok(propertyService.getAllProperties(pageable));
     }
 
-    @Operation(summary = "Get properties owned by a specific user")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get properties owned by a specific user (Only for authenticated users)")
     @GetMapping("/owner/{ownerId}")
     public ResponseEntity<Page<PropertyDto>> getPropertiesByOwner(
             @PathVariable Long ownerId, Pageable pageable) {
         return ResponseEntity.ok(propertyService.getPropertiesByOwner(ownerId, pageable));
     }
 
-    @Operation(summary = "Create a new property")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Create a new property (Only for admins)")
     @PostMapping
     public ResponseEntity<PropertyDto> createProperty(
             @Valid @RequestBody PropertyDto propertyDto, Authentication authentication) {
@@ -75,7 +79,8 @@ public class PropertyController {
         return new ResponseEntity<>(createdProperty, HttpStatus.CREATED);
     }
 
-    @Operation(summary = "Update an existing property by ID")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Update an existing property by ID (Only for admins)")
     @PutMapping("/{id}")
     public ResponseEntity<PropertyDto> updateProperty(
             @PathVariable Long id,
@@ -85,7 +90,8 @@ public class PropertyController {
         return ResponseEntity.ok(updatedProperty);
     }
 
-    @Operation(summary = "Delete a property by ID")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Delete a property by ID (Only for admins)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProperty(
             @PathVariable Long id, Authentication authentication) {
