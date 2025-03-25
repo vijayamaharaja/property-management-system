@@ -30,6 +30,8 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
+    private final CorsConfigurationSource corsConfigurationSource;
+
     @Value("${api.prefix}")
     private String apiPrefix;
 
@@ -39,6 +41,8 @@ public class SecurityConfig {
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher("/api/**") // Only apply security to API endpoints
+                .cors(cors -> cors.configurationSource(corsConfigurationSource)) // Enable CORS
+                .csrf(csrf -> csrf.disable()) // Disable CSRF for API endpoints
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
                                 apiPrefix + "/auth/**",
@@ -74,6 +78,7 @@ public class SecurityConfig {
                         "/h2-console/**",
                         "/login"
                 )
+                .cors(cors -> cors.configurationSource(corsConfigurationSource)) // Enable CORS
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
