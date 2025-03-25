@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -14,9 +15,14 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
@@ -28,27 +34,9 @@ public class SecurityConfig {
     @Value("${api.prefix}")
     private String apiPrefix;
 
-    // Order 1 : Implement OAuth2 authorisation server
-//    @Bean
-//    @Order(1)
-//    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
-//        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
-//        http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-//                .oidc(Customizer.withDefaults());
-//        http
-//                .exceptionHandling(exceptions -> exceptions
-//                        .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login")))
-////                .oauth2ResourceServer(oauth2 -> oauth2
-////                        .jwt(Customizer.withDefaults())
-////                )
-//        ;
-//
-//        return http.build();
-//    }
-
-    // Order 2 : Implemented regular web security
+    // Order 1 : Implemented regular web security
     @Bean
-    @Order(2)
+    @Order(1)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher("/api/**") // Only apply security to API endpoints
@@ -69,7 +57,7 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .userDetailsService(userDetailsService)
-//                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+                .cors(withDefaults())
         ;
 
         return http.build();
@@ -77,7 +65,7 @@ public class SecurityConfig {
 
     // Separate security filter chain for Swagger and other miscellaneous endpoints
     @Bean
-    @Order(3)
+    @Order(2)
     public SecurityFilterChain swaggerAndMiscSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher(
@@ -101,38 +89,6 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-//    @Bean
-//    public RegisteredClientRepository registeredClientRepository() {
-//        RegisteredClient client = RegisteredClient.withId(UUID.randomUUID().toString())
-//                .clientId("property-client")
-//                .clientSecret("{noop}secret")
-//                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-//                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-//                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-//                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-//                .redirectUri("http://localhost:8080/login/oauth2/code/property-client")
-//                .scope(OidcScopes.OPENID)
-//                .scope("properties.read")
-//                .scope("properties.write")
-//                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
-//                .build();
-//
-//        return new InMemoryRegisteredClientRepository(client);
-//    }
-
-//    @Bean
-//    public JWKSource<SecurityContext> jwkSource() {
-//        KeyPair keyPair = generateRsaKey();
-//        RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
-//        RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
-//        RSAKey rsaKey = new RSAKey.Builder(publicKey)
-//                .privateKey(privateKey)
-//                .keyID(UUID.randomUUID().toString())
-//                .build();
-//        JWKSet jwkSet = new JWKSet(rsaKey);
-//        return new ImmutableJWKSet<>(jwkSet);
-//    }
-
     private static KeyPair generateRsaKey() {
         KeyPair keyPair;
         try {
@@ -145,13 +101,17 @@ public class SecurityConfig {
         return keyPair;
     }
 
-//    @Bean
-//    public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
-//        return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
-//    }
-//
-//    @Bean
-//    public AuthorizationServerSettings authorizationServerSettings() {
-//        return AuthorizationServerSettings.builder().build();
-//    }
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedOrigin("http://localhost:3000"); // React dev server
+        config.addAllowedMethod("*");
+        config.addAllowedHeader("*");
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
 }
