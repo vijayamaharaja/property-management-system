@@ -1,13 +1,16 @@
 package com.test89.property_catalog_service.controller;
 
+import com.test89.property_catalog_service.dto.AvailabilityResponseDto;
 import com.test89.property_catalog_service.dto.PropertyDto;
 import com.test89.property_catalog_service.service.PropertyService;
+import com.test89.property_catalog_service.service.ReservationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,6 +27,7 @@ import java.math.BigDecimal;
 public class PropertyController {
 
     private final PropertyService propertyService;
+    private final ReservationService reservationService;
 
     @Operation(summary = "Get all available properties")
     @GetMapping("/public")
@@ -98,4 +103,18 @@ public class PropertyController {
         propertyService.deleteProperty(id);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "Check property availability for specific dates")
+    @GetMapping("/{propertyId}/availability")
+    public ResponseEntity<AvailabilityResponseDto> checkAvailability(
+            @PathVariable Long propertyId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkInDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOutDate) {
+
+        boolean isAvailable = reservationService.isPropertyAvailable(propertyId, checkInDate, checkOutDate);
+
+        AvailabilityResponseDto response = new AvailabilityResponseDto(isAvailable);
+        return ResponseEntity.ok(response);
+    }
+
 }

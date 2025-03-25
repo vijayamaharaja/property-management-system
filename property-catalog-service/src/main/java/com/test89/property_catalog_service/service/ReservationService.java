@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -177,6 +178,32 @@ public class ReservationService {
 
         return reservationRepository.findByPropertyId(propertyId, pageable)
                 .map(reservationMapper::toDto);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isPropertyAvailable(Long propertyId, LocalDate checkInDate, LocalDate checkOutDate) {
+        // Validate input dates
+        if (checkInDate.isAfter(checkOutDate)) {
+            throw new IllegalArgumentException("Check-in date cannot be after check-out date");
+        }
+
+        if (checkInDate.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Check-in date cannot be in the past");
+        }
+
+        // Check if property exists and is available for booking
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Property not found with id: " + propertyId));
+
+        if (!"Available".equals(property.getStatus())) {
+            return false;
+        }
+
+        // Check for overlapping reservations
+        List<Reservation> overlappingReservations = reservationRepository.findOverlappingReservations(
+                propertyId, checkInDate, checkOutDate);
+
+        return overlappingReservations.isEmpty();
     }
 
     @Transactional
