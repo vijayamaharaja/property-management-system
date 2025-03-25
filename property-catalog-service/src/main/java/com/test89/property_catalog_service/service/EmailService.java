@@ -21,16 +21,20 @@ public class EmailService {
                 "<p>You can now browse and book your dream property.</p>" +
                 "<br><p>Thanks,<br>Property Management / Catalog Team</p>";
 
+        sendEmail(to, subject, body);
+    }
+
+    public void sendEmail(String to, String subject, String htmlBody) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setText(body, true); // true = HTML
+            helper.setText(htmlBody, true); // true = HTML
             mailSender.send(message);
         } catch (MessagingException e) {
-            // Optional: log or handle failure
-            throw new RuntimeException("Failed to send welcome email", e);
+            // TODO: Need to handle failure
+            throw new RuntimeException("Failed to send email: " + subject, e);
         }
     }
 }
