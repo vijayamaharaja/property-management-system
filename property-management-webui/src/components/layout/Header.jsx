@@ -22,7 +22,7 @@ const Header = () => {
       <Container>
         <Navbar.Brand as={Link} to="/">
           <img
-            src="/logo.png"
+            src="/images/logo.png"
             width="30"
             height="30"
             className="d-inline-block align-top me-2"

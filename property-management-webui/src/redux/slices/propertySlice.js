@@ -3,7 +3,7 @@ import propertyService from '../../services/propertyService';
 
 // Fetch properties with search criteria
 export const searchProperties = createAsyncThunk(
-    'properties/search',
+    'properties/public/search',
     async (searchParams, { rejectWithValue }) => {
       try {
         return await propertyService.searchProperties(searchParams);

@@ -85,7 +85,7 @@ const PropertyCard = ({ property, checkInDate, checkOutDate, guests }) => {
         <div className="d-flex mt-auto">
           <Button 
             as={Link} 
-            to={`/properties/${property.id}`} 
+            to={`/properties/public/${property.id}`} 
             variant="outline-primary" 
             className="me-2 flex-grow-1"
           >

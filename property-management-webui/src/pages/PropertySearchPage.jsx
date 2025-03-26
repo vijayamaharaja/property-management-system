@@ -25,6 +25,21 @@ const PropertySearchPage = () => {
     const type = searchParams.get('type') || '';
     const page = searchParams.get('page') || 0;
     
+    // To match backed pagination
+    let sortBy = 'pricePerDay';
+    let sortDirection = 'asc';
+  
+    if (sortOption === 'price_desc') {
+      sortBy = 'pricePerDay';
+      sortDirection = 'desc';
+    } else if (sortOption === 'rating_desc') {
+      sortBy = 'averageRating';
+      sortDirection = 'desc';
+    } else if (sortOption === 'newest') {
+      sortBy = 'createdAt';
+      sortDirection = 'desc';
+    }
+  
     // Create search query
     const searchQuery = {
       city,
@@ -36,7 +51,8 @@ const PropertySearchPage = () => {
       maxPrice,
       type,
       page,
-      sort: sortOption
+      sortBy,
+      sortDirection
     };
     
     // Dispatch search action

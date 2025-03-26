@@ -1,12 +1,12 @@
 import api from './api';
 
 const searchProperties = async (searchParams) => {
-  const response = await api.get(`/properties/search`, { params: searchParams });
+  const response = await api.get(`/properties/public/search`, { params: searchParams });
   return response.data;
 };
 
 const getPropertyById = async (propertyId) => {
-  const response = await api.get(`/properties/${propertyId}`);
+  const response = await api.get(`/properties/public/${propertyId}`);
   return response.data;
 };
 

@@ -21,7 +21,7 @@ const HomePage = () => {
             </Col>
             <Col lg={6}>
               <img 
-                src="/images/hero-image.jpg" 
+                src="https://media.istockphoto.com/id/2186585261/photo/house-choice-comparison-search-examine-review-magnifying-glass.jpg?s=1024x1024&w=is&k=20&c=zNsC1SsuL58Ao7Al_bpD7i44IYuGbdgyrTGBcwvCR6I=" 
                 alt="Beautiful property" 
                 className="img-fluid rounded shadow-lg" 
               />

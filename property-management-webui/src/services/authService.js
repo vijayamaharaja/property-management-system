@@ -5,7 +5,7 @@ const AUTH_URL = `${API_BASE_URL}/auth`;
 
 const login = async (credentials) => {
   try {
-    const response = await api.post(`/auth/login`, credentials);
+    const response = await api.post(`${AUTH_URL}/login`, credentials);
     
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
@@ -21,7 +21,7 @@ const login = async (credentials) => {
 
 const register = async (userData) => {
   try {
-    const response = await api.post(`/auth/register`, userData);
+    const response = await api.post(`${AUTH_URL}/register`, userData);
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
     }
