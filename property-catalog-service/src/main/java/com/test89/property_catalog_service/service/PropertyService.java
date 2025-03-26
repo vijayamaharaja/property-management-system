@@ -9,6 +9,7 @@ import com.test89.property_catalog_service.repository.PropertyRepository;
 import com.test89.property_catalog_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -18,8 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -117,12 +120,34 @@ public class PropertyService {
             Integer maxGuests,
             Pageable pageable) {
 
-        // Use empty set if null to avoid SQL errors
-        Set<String> amenitiesSet = amenities != null ? amenities : new HashSet<>();
+        // First, get properties based on availability, pets policy, and guest count
+        Page<Property> propertiesPage = propertyRepository.findAvailablePropertiesForDates(
+                checkInDate, checkOutDate, petsAllowed, maxGuests, pageable);
 
-        return propertyRepository.findAvailablePropertiesWithAmenities(
-                        checkInDate, checkOutDate, amenitiesSet, petsAllowed, maxGuests, pageable)
-                .map(propertyMapper::toDto);
+        // If no amenities were specified or the result is empty, return as is
+        if (amenities == null || amenities.isEmpty() || propertiesPage.isEmpty()) {
+            return propertiesPage.map(propertyMapper::toDto);
+        }
+
+        // Filter properties that have the specified amenities
+        List<Property> filteredProperties = propertiesPage.getContent().stream()
+                .filter(property -> {
+                    if (property.getAmenities() == null || property.getAmenities().isEmpty()) {
+                        return false;
+                    }
+
+                    // Check if the property has at least one of the requested amenities
+                    return property.getAmenities().stream()
+                            .anyMatch(amenities::contains);
+                })
+                .collect(Collectors.toList());
+
+        // Create a new Page with the filtered properties
+        return new PageImpl<>(
+                filteredProperties,
+                pageable,
+                filteredProperties.size()
+        ).map(propertyMapper::toDto);
     }
 
     // No restrictions, public method

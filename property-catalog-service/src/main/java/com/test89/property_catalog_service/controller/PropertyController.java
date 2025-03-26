@@ -26,10 +26,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Set;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("${api.prefix}/properties")
@@ -174,7 +170,7 @@ public class PropertyController {
         List<Reservation> reservations = reservationService.getMonthlyReservations(
                 propertyId, year, month, authentication.getName());
 
-        // Use the reservationService to convert to DTOs instead of directly using the mapper
+        // Use the reservationService to convert to DTOs
         List<ReservationDto> reservationDtos = reservations.stream()
                 .map(reservation -> reservationService.getReservationById(reservation.getId(), authentication.getName()))
                 .collect(Collectors.toList());

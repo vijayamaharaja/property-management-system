@@ -65,42 +65,22 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
             Pageable pageable);
 
     /**
-     * Find properties with specific amenities and other criteria that are available for the requested dates
+     * Find available properties for specific dates with pet and guest requirements
      */
-    @Query("SELECT DISTINCT p FROM Property p " +
-            "LEFT JOIN p.amenities a " +
-            "WHERE p.status = 'Available' AND " +
+    @Query("SELECT p FROM Property p WHERE " +
+            "p.status = 'Available' AND " +
             "p.id NOT IN (" +
             "SELECT r.property.id FROM Reservation r WHERE " +
             "r.status IN ('PENDING', 'CONFIRMED') AND " +
             "((r.checkInDate <= :checkOutDate AND r.checkOutDate >= :checkInDate))" +
-            ") AND " +
-            "(:petsAllowed IS NULL OR p.petsAllowed = :petsAllowed) AND " +
-            "(:maxGuests IS NULL OR p.maxGuests >= :maxGuests) AND " +
-            "(COALESCE(:amenities, NULL) IS NULL OR " +
-            "   (SELECT COUNT(a2) FROM p.amenities a2 WHERE a2 IN :amenities) = SIZE(:amenities))")
-    Page<Property> findAvailablePropertiesWithAmenities(
+            ") " +
+            "AND (:petsAllowed IS NULL OR p.petsAllowed = :petsAllowed) " +
+            "AND (:maxGuests IS NULL OR p.maxGuests >= :maxGuests)")
+    Page<Property> findAvailablePropertiesForDates(
             @Param("checkInDate") LocalDate checkInDate,
             @Param("checkOutDate") LocalDate checkOutDate,
-            @Param("amenities") Set<String> amenities,
             @Param("petsAllowed") Boolean petsAllowed,
             @Param("maxGuests") Integer maxGuests,
-            Pageable pageable);
-
-    /**
-     * Find properties with proximity search based on location
-     */
-    @Query(value = "SELECT p.* FROM properties p " +
-            "JOIN addresses a ON p.id = a.property_id " +
-            "WHERE p.status = 'Available' " +
-            "AND (6371 * acos(cos(radians(:latitude)) * cos(radians(a.latitude)) * " +
-            "cos(radians(a.longitude) - radians(:longitude)) + " +
-            "sin(radians(:latitude)) * sin(radians(a.latitude)))) <= :radiusKm",
-            nativeQuery = true)
-    Page<Property> findPropertiesNearLocation(
-            @Param("latitude") Double latitude,
-            @Param("longitude") Double longitude,
-            @Param("radiusKm") Double radiusKm,
             Pageable pageable);
 
     Page<Property> findByOwnerId(Long ownerId, Pageable pageable);
