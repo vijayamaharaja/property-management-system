@@ -1,8 +1,10 @@
 package com.test89.property_catalog_service.service;
 
+import com.test89.property_catalog_service.dto.LoginRequestDto;
 import com.test89.property_catalog_service.dto.UserDto;
 import com.test89.property_catalog_service.dto.UserRegistrationDto;
 import com.test89.property_catalog_service.entity.User;
+import com.test89.property_catalog_service.exception.AuthenticationException;
 import com.test89.property_catalog_service.exception.ResourceNotFoundException;
 import com.test89.property_catalog_service.exception.UserAlreadyExistsException;
 import com.test89.property_catalog_service.mapper.UserMapper;
@@ -10,6 +12,7 @@ import com.test89.property_catalog_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +25,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public UserDto registerUser(UserRegistrationDto registrationDto) {
@@ -42,7 +46,10 @@ public class UserService {
         // send welcome email to new user
         emailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getFirstName());
 
-        return userMapper.toDto(savedUser);
+        // Generate JWT token
+        String token = userMapper.generateToken(savedUser);
+
+        return userMapper.toDto(savedUser, token);
     }
 
     @Transactional(readOnly = true)
@@ -99,4 +106,23 @@ public class UserService {
 
         userRepository.deleteById(id);
     }
+
+    @Transactional
+    public UserDto authenticateUser(LoginRequestDto loginRequest) {
+        // Find the user by username
+        User user = userRepository.findByUsername(loginRequest.getUsername())
+                .orElseThrow(() -> new AuthenticationException("Invalid username or password"));
+
+        // Verify the password
+        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+            throw new AuthenticationException("Invalid username or password");
+        }
+
+        // Generate JWT token
+        String token = userMapper.generateToken(user);
+
+        // Map user to UserDto with token
+        return userMapper.toDto(user, token);
+    }
+
 }

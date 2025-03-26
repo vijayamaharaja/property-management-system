@@ -3,22 +3,27 @@ package com.test89.property_catalog_service.mapper;
 import com.test89.property_catalog_service.dto.UserDto;
 import com.test89.property_catalog_service.dto.UserRegistrationDto;
 import com.test89.property_catalog_service.entity.User;
+import com.test89.property_catalog_service.security.JwtTokenProvider;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class UserMapper {
-
     private final PasswordEncoder passwordEncoder;
-
-    public UserMapper(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
-    }
+    private final JwtTokenProvider jwtTokenProvider;
 
     public UserDto toDto(User user) {
+        return toDto(user, null);
+    }
+
+    public UserDto toDto(User user, String token) {
         if (user == null) {
             return null;
         }
@@ -32,6 +37,7 @@ public class UserMapper {
                 .phoneNumber(user.getPhoneNumber())
                 .roles(user.getRoles())
                 .enabled(user.isEnabled())
+                .token(token)
                 .build();
     }
 
@@ -53,5 +59,30 @@ public class UserMapper {
                 .roles(roles)
                 .enabled(true)
                 .build();
+    }
+
+    /**
+     * Create UserDetails for Spring Security authentication
+     * @param user The user entity
+     * @return UserDetails for authentication
+     */
+    public UserDetails toUserDetails(User user) {
+        return new org.springframework.security.core.userdetails.User(
+                user.getUsername(),
+                user.getPassword(),
+                user.getRoles().stream()
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList())
+        );
+    }
+
+    /**
+     * Generate JWT token for a user
+     * @param user The user entity
+     * @return Generated JWT token
+     */
+    public String generateToken(User user) {
+        UserDetails userDetails = toUserDetails(user);
+        return jwtTokenProvider.generateToken(userDetails);
     }
 }

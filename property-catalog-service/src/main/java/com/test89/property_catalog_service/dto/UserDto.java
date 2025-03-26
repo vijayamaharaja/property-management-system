@@ -32,4 +32,5 @@ public class UserDto {
 
     private Set<String> roles = new HashSet<>();
     private boolean enabled;
+    private String token;
 }
