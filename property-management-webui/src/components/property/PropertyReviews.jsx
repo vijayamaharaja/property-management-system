@@ -1,59 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Button, Form, Spinner, Alert } from 'react-bootstrap';
+import { Card, Row, Col, Button, Form, Spinner, Alert, Pagination } from 'react-bootstrap';
 import { FaStar } from 'react-icons/fa';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { format } from 'date-fns';
-
-// Mock reviews data - in a real app, you would fetch these from your API
-const mockReviews = [
-  {
-    id: 1,
-    userId: 123,
-    userName: 'John D.',
-    rating: 5,
-    comment: 'Exceptional property with amazing views. Everything was perfect!',
-    date: '2025-02-15T14:30:00'
-  },
-  {
-    id: 2,
-    userId: 456,
-    userName: 'Sarah M.',
-    rating: 4,
-    comment: 'Great location and very comfortable. Would definitely recommend.',
-    date: '2025-01-27T09:15:00'
-  },
-  {
-    id: 3,
-    userId: 789,
-    userName: 'Michael P.',
-    rating: 5,
-    comment: 'Spotlessly clean and the host was very responsive. We had a wonderful stay.',
-    date: '2025-01-10T18:45:00'
-  }
-];
+import { fetchPropertyReviews, createReview, updateReview, deleteReview, resetReviewState } from '../../redux/slices/reviewSlice';
 
 const PropertyReviews = ({ propertyId }) => {
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const { isAuthenticated, user } = useSelector(state => state.auth);
+  const { 
+    propertyReviews,
+    create,
+    update,
+    delete: deleteState
+  } = useSelector(state => state.reviews);
+  
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [editingReview, setEditingReview] = useState(null);
   const [formData, setFormData] = useState({ rating: 5, comment: '' });
   
-  const { isAuthenticated, user } = useSelector(state => state.auth);
-  
+  // Fetch reviews when component mounts or propertyId changes
   useEffect(() => {
-    // In a real app, you would fetch reviews from your API
-    // For now, we'll simulate an API call using setTimeout
-    const fetchReviews = () => {
-      setLoading(true);
-      setTimeout(() => {
-        setReviews(mockReviews);
-        setLoading(false);
-      }, 1000);
-    };
-    
-    fetchReviews();
-  }, [propertyId]);
+    if (propertyId) {
+      dispatch(fetchPropertyReviews({ propertyId }));
+    }
+  }, [dispatch, propertyId]);
+  
+  // Reset form when create/update/delete operations complete
+  useEffect(() => {
+    if (create.success || update.success || deleteState.success) {
+      setShowReviewForm(false);
+      setEditingReview(null);
+      setFormData({ rating: 5, comment: '' });
+      
+      // Reset states
+      if (create.success) dispatch(resetReviewState('create'));
+      if (update.success) dispatch(resetReviewState('update'));
+      if (deleteState.success) dispatch(resetReviewState('delete'));
+    }
+  }, [create.success, update.success, deleteState.success, dispatch]);
   
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -67,23 +52,64 @@ const PropertyReviews = ({ propertyId }) => {
   const handleSubmitReview = (e) => {
     e.preventDefault();
     
-    // In a real app, you would submit the review to your API
-    // For now, we'll add it to the local state
-    const newReview = {
-      id: Date.now(),
-      userId: user?.id || 999,
-      userName: user?.firstName ? `${user.firstName} ${user.lastName.charAt(0)}.` : 'Anonymous',
-      rating: formData.rating,
-      comment: formData.comment,
-      date: new Date().toISOString()
-    };
-    
-    setReviews([newReview, ...reviews]);
-    setFormData({ rating: 5, comment: '' });
-    setShowReviewForm(false);
+    if (editingReview) {
+      dispatch(updateReview({ 
+        reviewId: editingReview.id, 
+        reviewData: formData 
+      }));
+    } else {
+      dispatch(createReview({ 
+        propertyId, 
+        reviewData: formData 
+      }));
+    }
   };
   
-  if (loading) {
+  const handleEditReview = (review) => {
+    setEditingReview(review);
+    setFormData({ 
+      rating: review.rating, 
+      comment: review.comment 
+    });
+    setShowReviewForm(true);
+  };
+  
+  const handleDeleteReview = (reviewId) => {
+    if (window.confirm('Are you sure you want to delete this review?')) {
+      dispatch(deleteReview(reviewId));
+    }
+  };
+  
+  const handleCancelForm = () => {
+    setShowReviewForm(false);
+    setEditingReview(null);
+    setFormData({ rating: 5, comment: '' });
+  };
+  
+  const handlePageChange = (page) => {
+    dispatch(fetchPropertyReviews({ 
+      propertyId, 
+      params: { page } 
+    }));
+  };
+  
+  // Check if user can review (hasn't already reviewed)
+  const canUserReview = () => {
+    if (!isAuthenticated || !user) return false;
+    
+    // Check if user has already reviewed this property
+    return !propertyReviews.data.some(review => 
+      review.userId === user.id
+    );
+  };
+  
+  // Check if user can edit/delete a review
+  const canManageReview = (review) => {
+    if (!isAuthenticated || !user) return false;
+    return review.userId === user.id;
+  };
+
+  if (propertyReviews.loading) {
     return (
       <div className="text-center my-4">
         <Spinner animation="border" />
@@ -91,20 +117,20 @@ const PropertyReviews = ({ propertyId }) => {
     );
   }
   
-  if (error) {
+  if (propertyReviews.error) {
     return (
       <Alert variant="danger">
-        {error}
+        {propertyReviews.error}
       </Alert>
     );
   }
-  
+
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="mb-0">Guest Reviews</h4>
         
-        {isAuthenticated && !showReviewForm && (
+        {isAuthenticated && canUserReview() && !showReviewForm && (
           <Button 
             variant="outline-primary" 
             size="sm"
@@ -118,7 +144,7 @@ const PropertyReviews = ({ propertyId }) => {
       {showReviewForm && (
         <Card className="mb-4">
           <Card.Body>
-            <h5 className="mb-3">Your Review</h5>
+            <h5 className="mb-3">{editingReview ? 'Edit Your Review' : 'Your Review'}</h5>
             
             <Form onSubmit={handleSubmitReview}>
               <Form.Group className="mb-3">
@@ -151,36 +177,57 @@ const PropertyReviews = ({ propertyId }) => {
               <div className="d-flex justify-content-end gap-2">
                 <Button
                   variant="outline-secondary"
-                  onClick={() => setShowReviewForm(false)}
+                  onClick={handleCancelForm}
+                  disabled={create.loading || update.loading}
                 >
                   Cancel
                 </Button>
                 <Button
                   variant="primary"
                   type="submit"
+                  disabled={create.loading || update.loading}
                 >
-                  Submit Review
+                  {create.loading || update.loading ? (
+                    <>
+                      <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />
+                      {editingReview ? 'Updating...' : 'Submitting...'}
+                    </>
+                  ) : (
+                    editingReview ? 'Update Review' : 'Submit Review'
+                  )}
                 </Button>
               </div>
+              
+              {(create.error || update.error) && (
+                <Alert variant="danger" className="mt-3">
+                  {create.error || update.error}
+                </Alert>
+              )}
             </Form>
           </Card.Body>
         </Card>
       )}
       
-      {reviews.length === 0 ? (
+      {propertyReviews.data.length === 0 ? (
         <Alert variant="info">
           No reviews yet. Be the first to review this property!
         </Alert>
       ) : (
-        <div>
-          {reviews.map((review) => (
+        <>
+          <div className="mb-3">
+            <strong>
+              {propertyReviews.data.length} {propertyReviews.data.length === 1 ? 'Review' : 'Reviews'}
+            </strong>
+          </div>
+          
+          {propertyReviews.data.map((review) => (
             <Card key={review.id} className="mb-3">
               <Card.Body>
                 <div className="d-flex justify-content-between align-items-start">
                   <div>
                     <div className="fw-bold">{review.userName}</div>
                     <div className="text-muted small">
-                      {format(new Date(review.date), 'MMM d, yyyy')}
+                      {format(new Date(review.createdAt), 'MMM d, yyyy')}
                     </div>
                   </div>
                   
@@ -197,10 +244,61 @@ const PropertyReviews = ({ propertyId }) => {
                 <div className="mt-3">
                   {review.comment}
                 </div>
+                
+                {canManageReview(review) && (
+                  <div className="mt-3 d-flex justify-content-end gap-2">
+                    <Button
+                      variant="outline-secondary"
+                      size="sm"
+                      onClick={() => handleEditReview(review)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      onClick={() => handleDeleteReview(review.id)}
+                      disabled={deleteState.loading}
+                    >
+                      {deleteState.loading && deleteState.reviewId === review.id ? (
+                        <>
+                          <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-1" />
+                          Deleting...
+                        </>
+                      ) : 'Delete'}
+                    </Button>
+                  </div>
+                )}
               </Card.Body>
             </Card>
           ))}
-        </div>
+          
+          {propertyReviews.totalPages > 1 && (
+            <div className="d-flex justify-content-center mt-4">
+              <Pagination>
+                <Pagination.Prev
+                  disabled={propertyReviews.page === 0}
+                  onClick={() => handlePageChange(propertyReviews.page - 1)}
+                />
+                
+                {[...Array(propertyReviews.totalPages).keys()].map(page => (
+                  <Pagination.Item
+                    key={page}
+                    active={page === propertyReviews.page}
+                    onClick={() => handlePageChange(page)}
+                  >
+                    {page + 1}
+                  </Pagination.Item>
+                ))}
+                
+                <Pagination.Next
+                  disabled={propertyReviews.page === propertyReviews.totalPages - 1}
+                  onClick={() => handlePageChange(propertyReviews.page + 1)}
+                />
+              </Pagination>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

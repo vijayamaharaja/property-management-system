@@ -1,31 +1,17 @@
-import axios from 'axios';
+import api from './api';
+import { API_BASE_URL } from '../api/config';
 
-axios.defaults.baseURL = 'http://localhost:8080';
-const API_URL = '/api/v1/auth';
+const AUTH_URL = `${API_BASE_URL}/auth`;
 
 const login = async (credentials) => {
   try {
-    console.log('Login Request:', {
-      url: `${API_URL}/login`,
-      credentials: credentials
-    });
-
-    const response = await axios.post(`${API_URL}/login`, credentials);
+    const response = await api.post(`/auth/login`, credentials);
     
-    console.log('Login Response:', response);
-
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
     }
     return response.data.user;
   } catch (error) {
-    // Improved error handling
-    console.error('Login Error:', {
-      error: error,
-      response: error.response,
-      request: error.request,
-      config: error.config
-    });
     if (!error.response) {
       throw new Error('Network error: Could not connect to the server. Please check your connection or try again later.');
     }
@@ -35,13 +21,12 @@ const login = async (credentials) => {
 
 const register = async (userData) => {
   try {
-    const response = await axios.post(`${API_URL}/register`, userData);
+    const response = await api.post(`/auth/register`, userData);
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
     }
     return response.data.user;
   } catch (error) {
-    // Improved error handling
     if (!error.response) {
       throw new Error('Network error: Could not connect to the server. Please check your connection or try again later.');
     }
@@ -55,10 +40,9 @@ const logout = () => {
 
 const getCurrentUser = async () => {
   try {
-    const response = await axios.get('/api/v1/users/profile');
+    const response = await api.get('/users/profile');
     return response.data;
   } catch (error) {
-    // Improved error handling
     if (!error.response) {
       throw new Error('Network error: Could not connect to the server.');
     }

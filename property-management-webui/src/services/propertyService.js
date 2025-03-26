@@ -1,32 +1,55 @@
-import axios from 'axios';
-
-const API_URL = '/api/v1/properties';
+import api from './api';
 
 const searchProperties = async (searchParams) => {
-  const response = await axios.get(`${API_URL}/public/search`, { params: searchParams });
+  const response = await api.get(`/properties/search`, { params: searchParams });
   return response.data;
 };
 
 const getPropertyById = async (propertyId) => {
-  const response = await axios.get(`${API_URL}/public/${propertyId}`);
+  const response = await api.get(`/properties/${propertyId}`);
   return response.data;
 };
 
 const getFeaturedProperties = async () => {
-  const response = await axios.get(`${API_URL}/public?featured=true`);
+  const response = await api.get(`/properties?featured=true`);
   return response.data.content;
 };
 
 const getOwnerProperties = async () => {
-  const response = await axios.get(`${API_URL}`, {
-    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-  });
+  const response = await api.get(`/properties/owner`);
   return response.data.content;
 };
 
 const checkAvailability = async (propertyId, checkInDate, checkOutDate) => {
-  const response = await axios.get(`${API_URL}/public/${propertyId}/availability`, {
+  const response = await api.get(`/properties/${propertyId}/availability`, {
     params: { checkInDate, checkOutDate }
+  });
+  return response.data;
+};
+
+const createProperty = async (propertyData) => {
+  const response = await api.post('/properties', propertyData);
+  return response.data;
+};
+
+const updateProperty = async (propertyId, propertyData) => {
+  const response = await api.put(`/properties/${propertyId}`, propertyData);
+  return response.data;
+};
+
+const deleteProperty = async (propertyId) => {
+  const response = await api.delete(`/properties/${propertyId}`);
+  return response.data;
+};
+
+const uploadPropertyImage = async (propertyId, imageFile) => {
+  const formData = new FormData();
+  formData.append('file', imageFile);
+  
+  const response = await api.post(`/properties/${propertyId}/images`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
   });
   return response.data;
 };
@@ -36,7 +59,11 @@ const propertyService = {
   getPropertyById,
   getFeaturedProperties,
   getOwnerProperties,
-  checkAvailability
+  checkAvailability,
+  createProperty,
+  updateProperty,
+  deleteProperty,
+  uploadPropertyImage
 };
 
 export default propertyService;

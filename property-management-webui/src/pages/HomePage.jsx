@@ -94,18 +94,3 @@ const HomePage = () => {
 };
 
 export default HomePage;
-
-
-// import React from 'react';
-// import { Container } from 'react-bootstrap';
-
-// const HomePage = () => {
-//   return (
-//     <Container className="my-5">
-//       <h1>Welcome to Property Management System</h1>
-//       <p>This is the homepage. More content will be added soon.</p>
-//     </Container>
-//   );
-// };
-
-// export default HomePage;

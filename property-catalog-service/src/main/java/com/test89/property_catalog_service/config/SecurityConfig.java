@@ -33,19 +33,38 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
-    private final CorsConfigurationSource corsConfigurationSource;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Value("${api.prefix}")
     private String apiPrefix;
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:3001"));   // React dev env
+        config.addAllowedMethod("*");
+        config.addAllowedHeader("*");
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
+
+        System.out.println("CORS Configuration Allowed Origins: " + config.getAllowedOrigins());
+        System.out.println("CORS Configuration Allowed Methods: " + config.getAllowedMethods());
+        System.out.println("CORS Configuration Allowed Headers: " + config.getAllowedHeaders());
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
+
     // Order 1 : Implemented regular web security
     @Bean
     @Order(1)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+        CorsConfigurationSource corsSource = corsConfigurationSource();
         http
                 .securityMatcher("/api/**") // Only apply security to API endpoints
-                .cors(cors -> cors.configurationSource(corsConfigurationSource)) // Enable CORS
+                .cors(cors -> cors.configurationSource(corsSource)) // Enable CORS
                 .csrf(csrf -> csrf.disable()) // Disable CSRF for API endpoints
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
@@ -64,7 +83,6 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .userDetailsService(userDetailsService)
-                .cors(withDefaults())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         ;
 
@@ -75,6 +93,8 @@ public class SecurityConfig {
     @Bean
     @Order(2)
     public SecurityFilterChain swaggerAndMiscSecurityFilterChain(HttpSecurity http) throws Exception {
+        CorsConfigurationSource corsSource = corsConfigurationSource();
+
         http
                 .securityMatcher(
                         "/v3/api-docs/**",
@@ -83,7 +103,7 @@ public class SecurityConfig {
                         "/h2-console/**",
                         "/login"
                 )
-                .cors(cors -> cors.configurationSource(corsConfigurationSource)) // Enable CORS
+                .cors(cors -> cors.configurationSource(corsSource)) // Enable CORS
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
@@ -105,19 +125,7 @@ public class SecurityConfig {
         return keyPair;
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:3001"));   // React dev env
-        config.addAllowedMethod("*");
-        config.addAllowedHeader("*");
-        config.setAllowCredentials(true);
-        config.setMaxAge(3600L);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
-    }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {

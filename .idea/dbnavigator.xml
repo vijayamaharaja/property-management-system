@@ -46,10 +46,10 @@ INSERT INTO public.user_roles ("user_id", "role") VALUES
 -- Sample properties
 INSERT INTO public.properties (title, description, type, price, bedrooms, bathrooms, area, status, created_at, updated_at, owner_id)
 VALUES 
-('Suburban Family Home', 'Spacious family home in a quiet suburban neighborhood with excellent schools.', 'House', 750000.00, 4, 3, 2500.0, 'Available', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 5),
-('Beach Front Condo', 'Amazing beachfront property with stunning ocean views.', 'Condo', 850000.00, 3, 2, 1800.0, 'Available', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 5),
-('Mountain Cabin Retreat', 'Cozy cabin in the mountains, perfect for nature lovers.', 'Cabin', 350000.00, 2, 1, 1000.0, 'Available', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 5),
-('Modern Office Space', 'Contemporary office space in a prime business district.', 'Commercial', 1200000.00, 0, 2, 3000.0, 'Available', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 5);
+('Suburban Family Home', 'Spacious family home in a quiet suburban neighborhood with excellent schools.', 'House', 750000.00, 4, 3, 2500.0, 'Available', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1),
+('Beach Front Condo', 'Amazing beachfront property with stunning ocean views.', 'Condo', 850000.00, 3, 2, 1800.0, 'Available', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1),
+('Mountain Cabin Retreat', 'Cozy cabin in the mountains, perfect for nature lovers.', 'Cabin', 350000.00, 2, 1, 1000.0, 'Available', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1),
+('Modern Office Space', 'Contemporary office space in a prime business district.', 'Commercial', 1200000.00, 0, 2, 3000.0, 'Available', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1);
 
 -- Property addresses
 INSERT INTO public.properties_address (property_id, street, city, state, postal_code, country, latitude, longitude)
@@ -63,6 +63,8 @@ VALUES
 
 select * from "public".properties
 -- Property amenities
+
+
 INSERT INTO public.property_amenities (property_id, amenity)
 VALUES 
 (1, 'Pool'),
@@ -98,7 +100,9 @@ VALUES
     <last-used-providers />
   </component>
   <component name="DBNavigator.Project.DatabaseFileManager">
-    <open-files />
+    <open-files>
+      <object connection-id="2b067e6f-a302-445b-bcad-d1d7d2130109" object-ref="consoles/Connection" />
+    </open-files>
   </component>
   <component name="DBNavigator.Project.DatabaseSessionManager">
     <connection id="2b067e6f-a302-445b-bcad-d1d7d2130109" />
@@ -140,7 +144,7 @@ VALUES
           <url-type value="DATABASE" />
           <host value="localhost" />
           <port value="5432" />
-          <database value="postgres" />
+          <database value="property_management_db" />
           <tns-folder value="" />
           <tns-profile value="" />
           <type value="USER_PASSWORD" />

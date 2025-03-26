@@ -1,17 +1,14 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import propertyService from '../../services/propertyService';
+import reservationService from '../../services/reservationService';
+import api from '../../services/api';
 
 // Fetch properties owned by the current user
 export const fetchOwnerProperties = createAsyncThunk(
   'ownerDashboard/fetchProperties',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/api/v1/properties', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      return response.data.content || [];
+      return await propertyService.getOwnerProperties();
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch properties');
     }
@@ -21,14 +18,10 @@ export const fetchOwnerProperties = createAsyncThunk(
 // Fetch bookings for properties owned by the current user
 export const fetchPropertyBookings = createAsyncThunk(
   'ownerDashboard/fetchBookings',
-  async (_, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/api/v1/reservations/owner-bookings', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      return response.data.content || [];
+      const response = await api.get('/reservations/owner', { params });
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch bookings');
     }
@@ -40,14 +33,23 @@ export const fetchPropertyStats = createAsyncThunk(
   'ownerDashboard/fetchStats',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/api/v1/properties/stats', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      return response.data || {};
+      const response = await api.get('/properties/stats');
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch property statistics');
+    }
+  }
+);
+
+// Fetch revenue data for owner dashboard
+export const fetchRevenueData = createAsyncThunk(
+  'ownerDashboard/fetchRevenue',
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response = await api.get('/properties/revenue', { params });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch revenue data');
     }
   }
 );
@@ -67,10 +69,15 @@ const initialState = {
     revenueByProperty: [],
     upcomingCheckouts: []
   },
+  revenue: {
+    monthlyData: [],
+    propertyBreakdown: []
+  },
   loading: {
     properties: false,
     bookings: false,
-    stats: false
+    stats: false,
+    revenue: false
   },
   error: null
 };
@@ -78,7 +85,11 @@ const initialState = {
 const ownerDashboardSlice = createSlice({
   name: 'ownerDashboard',
   initialState,
-  reducers: {},
+  reducers: {
+    resetDashboardState: (state) => {
+      // Reset state if needed
+    }
+  },
   extraReducers: (builder) => {
     // Handle fetchOwnerProperties
     builder
@@ -103,7 +114,7 @@ const ownerDashboardSlice = createSlice({
       })
       .addCase(fetchPropertyBookings.fulfilled, (state, action) => {
         state.loading.bookings = false;
-        state.bookings = action.payload;
+        state.bookings = action.payload.content || [];
       })
       .addCase(fetchPropertyBookings.rejected, (state, action) => {
         state.loading.bookings = false;
@@ -127,7 +138,23 @@ const ownerDashboardSlice = createSlice({
         state.loading.stats = false;
         state.error = action.payload;
       });
+
+    // Handle fetchRevenueData
+    builder
+      .addCase(fetchRevenueData.pending, (state) => {
+        state.loading.revenue = true;
+        state.error = null;
+      })
+      .addCase(fetchRevenueData.fulfilled, (state, action) => {
+        state.loading.revenue = false;
+        state.revenue = action.payload;
+      })
+      .addCase(fetchRevenueData.rejected, (state, action) => {
+        state.loading.revenue = false;
+        state.error = action.payload;
+      });
   }
 });
 
+export const { resetDashboardState } = ownerDashboardSlice.actions;
 export default ownerDashboardSlice.reducer;
