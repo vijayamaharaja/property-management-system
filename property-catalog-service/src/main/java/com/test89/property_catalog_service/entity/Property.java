@@ -22,7 +22,7 @@ import java.util.Set;
 public class Property {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    public Long id;
 
     @Column(nullable = false)
     private String title;
@@ -33,11 +33,15 @@ public class Property {
     private String type; // Apartment, House, Commercial, etc.
 
     @Column(nullable = false)
-    private BigDecimal price;
+    private BigDecimal pricePerDay; // Changed from price to pricePerDay
 
     private Integer bedrooms;
     private Integer bathrooms;
     private Double area; // in square meters/feet
+
+    private Integer maxGuests; // Maximum number of guests allowed
+    private Integer minStayDays; // Minimum stay duration in days
+    private Integer maxStayDays; // Maximum stay duration in days (optional)
 
     @Embedded
     private Address address;
@@ -52,8 +56,16 @@ public class Property {
     @Column(name = "image_url")
     private Set<String> imageUrls = new HashSet<>();
 
+    // Rental property availability status
     @Column(nullable = false)
-    private String status; // Available, Sold, Pending, etc.
+    private String status; // Available, Maintenance, Unavailable, etc.
+
+    // Property rules and policies
+    private Boolean petsAllowed;
+    private Boolean smokingAllowed;
+    private Boolean partiesAllowed;
+    private String checkInTime; // Default check-in time (e.g., "14:00")
+    private String checkOutTime; // Default check-out time (e.g., "11:00")
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

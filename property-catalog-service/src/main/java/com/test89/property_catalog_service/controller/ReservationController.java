@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,9 +26,9 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/api/v1/reservations")
+@RequestMapping("${api.prefix}/reservations")
 @RequiredArgsConstructor
-@Tag(name = "Reservation Management", description = "APIs for managing property reservations")
+@Tag(name = "Reservation Management", description = "APIs for managing rental property reservations")
 public class ReservationController {
 
     private final ReservationService reservationService;
@@ -35,7 +36,7 @@ public class ReservationController {
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Create a new reservation",
-            description = "Allows an authenticated user to create a new property reservation")
+            description = "Allows an authenticated user to create a new property rental reservation")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Reservation created successfully",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -46,7 +47,7 @@ public class ReservationController {
     })
     public ResponseEntity<ReservationDto> createReservation(
             @Parameter(description = "Reservation creation details", required = true)
-            @RequestBody ReservationCreateDto createDto,
+            @Valid @RequestBody ReservationCreateDto createDto,
             Authentication authentication) {
         String username = authentication.getName();
         ReservationDto createdReservation = reservationService.createReservation(createDto, username);
@@ -76,7 +77,7 @@ public class ReservationController {
     @GetMapping("/my-reservations")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get user's reservations",
-            description = "Retrieve paginated list of reservations for the current user")
+            description = "Retrieve paginated list of all reservations for the current user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Reservations retrieved successfully",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -111,10 +112,29 @@ public class ReservationController {
         return ResponseEntity.ok(reservations);
     }
 
+    @GetMapping("/past")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get past reservations",
+            description = "Retrieve paginated list of past reservations for the current user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Past reservations retrieved successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = Page.class))),
+            @ApiResponse(responseCode = "403", description = "Unauthorized access")
+    })
+    public ResponseEntity<Page<ReservationDto>> getPastReservations(
+            Authentication authentication,
+            @Parameter(description = "Pagination parameters")
+            @PageableDefault(size = 20) Pageable pageable) {
+        String username = authentication.getName();
+        Page<ReservationDto> reservations = reservationService.getPastReservations(username, pageable);
+        return ResponseEntity.ok(reservations);
+    }
+
     @PatchMapping("/{id}/status")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Update reservation status",
-            description = "Update the status of a specific reservation")
+            description = "Update the status of a specific reservation (PENDING, CONFIRMED, CANCELLED, COMPLETED)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Reservation status updated successfully",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -130,6 +150,30 @@ public class ReservationController {
             Authentication authentication) {
         String username = authentication.getName();
         ReservationDto updatedReservation = reservationService.updateReservationStatus(id, status, username);
+        return ResponseEntity.ok(updatedReservation);
+    }
+
+    @PostMapping("/{id}/payment")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Record payment for a reservation",
+            description = "Record payment details for a reservation")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Payment recorded successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ReservationDto.class))),
+            @ApiResponse(responseCode = "403", description = "Unauthorized access"),
+            @ApiResponse(responseCode = "404", description = "Reservation not found")
+    })
+    public ResponseEntity<ReservationDto> recordPayment(
+            @Parameter(description = "Reservation ID", example = "123", required = true)
+            @PathVariable Long id,
+            @Parameter(description = "Payment method", example = "CREDIT_CARD", required = true)
+            @RequestParam String paymentMethod,
+            @Parameter(description = "Payment reference", example = "TX123456789")
+            @RequestParam(required = false) String paymentReference,
+            Authentication authentication) {
+        String username = authentication.getName();
+        ReservationDto updatedReservation = reservationService.recordPayment(id, paymentMethod, paymentReference, username);
         return ResponseEntity.ok(updatedReservation);
     }
 
@@ -168,9 +212,9 @@ public class ReservationController {
     public ResponseEntity<Boolean> checkPropertyAvailability(
             @Parameter(description = "Property ID", example = "456", required = true)
             @RequestParam Long propertyId,
-            @Parameter(description = "Check-in date", example = "2024-07-15", required = true)
+            @Parameter(description = "Check-in date", example = "2025-07-15", required = true)
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkInDate,
-            @Parameter(description = "Check-out date", example = "2024-07-20", required = true)
+            @Parameter(description = "Check-out date", example = "2025-07-20", required = true)
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOutDate) {
         boolean isAvailable = reservationService.isPropertyAvailable(propertyId, checkInDate, checkOutDate);
         return ResponseEntity.ok(isAvailable);

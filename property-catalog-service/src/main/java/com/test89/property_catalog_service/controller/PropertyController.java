@@ -2,9 +2,12 @@ package com.test89.property_catalog_service.controller;
 
 import com.test89.property_catalog_service.dto.AvailabilityResponseDto;
 import com.test89.property_catalog_service.dto.PropertyDto;
+import com.test89.property_catalog_service.dto.ReservationDto;
+import com.test89.property_catalog_service.entity.Reservation;
 import com.test89.property_catalog_service.service.PropertyService;
 import com.test89.property_catalog_service.service.ReservationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,11 +22,18 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("${api.prefix}/properties")
-@Tag(name = "Properties", description = "APIs for managing and querying properties")
+@Tag(name = "Properties", description = "APIs for managing and querying rental properties")
 public class PropertyController {
 
     private final PropertyService propertyService;
@@ -35,7 +45,7 @@ public class PropertyController {
         return ResponseEntity.ok(propertyService.getAvailableProperties(pageable));
     }
 
-    @Operation(summary = "Search properties by criteria")
+    @Operation(summary = "Basic search for properties by criteria")
     @GetMapping("/public/search")
     public ResponseEntity<Page<PropertyDto>> searchProperties(
             @RequestParam(required = false, defaultValue = "0") BigDecimal minPrice,
@@ -43,8 +53,42 @@ public class PropertyController {
             @RequestParam(required = false) Integer bedrooms,
             @RequestParam(required = false) Integer bathrooms,
             @RequestParam(required = false) String city,
+            @RequestParam(required = false) Integer maxGuests,
             Pageable pageable) {
-        return ResponseEntity.ok(propertyService.searchProperties(minPrice, maxPrice, bedrooms, bathrooms, city, pageable));
+        return ResponseEntity.ok(propertyService.searchProperties(
+                minPrice, maxPrice, bedrooms, bathrooms, city, maxGuests, pageable));
+    }
+
+    @Operation(summary = "Advanced search for properties with date availability")
+    @GetMapping("/public/search/available")
+    public ResponseEntity<Page<PropertyDto>> searchAvailableProperties(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkInDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOutDate,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) Integer bedrooms,
+            @RequestParam(required = false) Integer bathrooms,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) Integer guestCount,
+            @RequestParam(required = false) Integer minStayDays,
+            @RequestParam(required = false) Integer maxStayDays,
+            Pageable pageable) {
+        return ResponseEntity.ok(propertyService.searchAvailableProperties(
+                checkInDate, checkOutDate, minPrice, maxPrice, bedrooms, bathrooms,
+                city, guestCount, minStayDays, maxStayDays, pageable));
+    }
+
+    @Operation(summary = "Search for properties with specific amenities")
+    @GetMapping("/public/search/amenities")
+    public ResponseEntity<Page<PropertyDto>> searchPropertiesWithAmenities(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkInDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOutDate,
+            @RequestParam(required = false) Set<String> amenities,
+            @RequestParam(required = false) Boolean petsAllowed,
+            @RequestParam(required = false) Integer maxGuests,
+            Pageable pageable) {
+        return ResponseEntity.ok(propertyService.searchPropertiesWithAmenities(
+                checkInDate, checkOutDate, amenities, petsAllowed, maxGuests, pageable));
     }
 
     @Operation(summary = "Get properties by type")
@@ -117,4 +161,24 @@ public class PropertyController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasRole('ADMIN') or @propertySecurity.isOwner(#propertyId, authentication.name)")
+    @Operation(summary = "Get a property's monthly reservation calendar (Only for property owners or admins)")
+    @GetMapping("/{propertyId}/calendar")
+    public ResponseEntity<List<ReservationDto>> getPropertyMonthlyCalendar(
+            @PathVariable Long propertyId,
+            @RequestParam @Parameter(description = "Year, e.g. 2025") int year,
+            @RequestParam @Parameter(description = "Month (1-12)") int month,
+            Authentication authentication) {
+
+        // Get the reservations for the specified month
+        List<Reservation> reservations = reservationService.getMonthlyReservations(
+                propertyId, year, month, authentication.getName());
+
+        // Use the reservationService to convert to DTOs instead of directly using the mapper
+        List<ReservationDto> reservationDtos = reservations.stream()
+                .map(reservation -> reservationService.getReservationById(reservation.getId(), authentication.getName()))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(reservationDtos);
+    }
 }

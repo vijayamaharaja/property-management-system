@@ -15,7 +15,8 @@ public class PropertySummaryDto {
     private Long id;
     private String title;
     private String type;
-    private BigDecimal price;
+    private BigDecimal pricePerDay;
+    private Integer maxGuests;
     private AddressDto address;
     private String imageUrl; // Primary image URL
 }

@@ -32,16 +32,31 @@ public class ReservationDto {
     @Future(message = "Check-out date must be in the future")
     private LocalDate checkOutDate;
 
+    private Integer numberOfDays;
+
+    @NotNull(message = "Price per day is required")
+    @Positive(message = "Price per day must be positive")
+    private BigDecimal pricePerDay;
+
     @NotNull(message = "Total price is required")
     @Positive(message = "Total price must be positive")
     private BigDecimal totalPrice;
 
-    private String status;
-
-    private String specialRequests;
+    private BigDecimal cleaningFee;
+    private BigDecimal serviceFee;
+    private BigDecimal taxAmount;
 
     @Positive(message = "Guest count must be positive")
     private Integer guestCount;
+
+    private String status;
+    private String specialRequests;
+    private String cancellationReason;
+
+    private Boolean isPaid;
+    private LocalDateTime paymentDate;
+    private String paymentMethod;
+    private String paymentReference;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -16,6 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -47,7 +51,7 @@ public class PropertyService {
                 .map(propertyMapper::toDto);
     }
 
-    // No restrictions, public method
+    // Basic search with price, bedrooms, bathrooms, city
     @Transactional(readOnly = true)
     public Page<PropertyDto> searchProperties(
             BigDecimal minPrice,
@@ -55,8 +59,69 @@ public class PropertyService {
             Integer bedrooms,
             Integer bathrooms,
             String city,
+            Integer maxGuests,
             Pageable pageable) {
-        return propertyRepository.findByFilters(minPrice, maxPrice, bedrooms, bathrooms, city, pageable)
+        return propertyRepository.findByBasicFilters(
+                        minPrice, maxPrice, bedrooms, bathrooms, city, maxGuests, pageable)
+                .map(propertyMapper::toDto);
+    }
+
+    // Advanced search with date availability
+    @Transactional(readOnly = true)
+    public Page<PropertyDto> searchAvailableProperties(
+            LocalDate checkInDate,
+            LocalDate checkOutDate,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            Integer bedrooms,
+            Integer bathrooms,
+            String city,
+            Integer guestCount,
+            Integer minStayDays,
+            Integer maxStayDays,
+            Pageable pageable) {
+
+        // Validate dates
+        if (checkInDate == null || checkOutDate == null) {
+            throw new IllegalArgumentException("Check-in and check-out dates are required");
+        }
+
+        if (checkInDate.isAfter(checkOutDate)) {
+            throw new IllegalArgumentException("Check-in date cannot be after check-out date");
+        }
+
+        // Calculate stay duration
+        int stayDuration = (int) ChronoUnit.DAYS.between(checkInDate, checkOutDate);
+        if (stayDuration < 1) {
+            throw new IllegalArgumentException("Stay duration must be at least 1 day");
+        }
+
+        return propertyRepository.findAvailableProperties(
+                        checkInDate, checkOutDate,
+                        minPrice, maxPrice,
+                        bedrooms, bathrooms,
+                        city, guestCount,
+                        minStayDays, maxStayDays,
+                        stayDuration,
+                        pageable)
+                .map(propertyMapper::toDto);
+    }
+
+    // Search with amenities and other filters
+    @Transactional(readOnly = true)
+    public Page<PropertyDto> searchPropertiesWithAmenities(
+            LocalDate checkInDate,
+            LocalDate checkOutDate,
+            Set<String> amenities,
+            Boolean petsAllowed,
+            Integer maxGuests,
+            Pageable pageable) {
+
+        // Use empty set if null to avoid SQL errors
+        Set<String> amenitiesSet = amenities != null ? amenities : new HashSet<>();
+
+        return propertyRepository.findAvailablePropertiesWithAmenities(
+                        checkInDate, checkOutDate, amenitiesSet, petsAllowed, maxGuests, pageable)
                 .map(propertyMapper::toDto);
     }
 
@@ -69,8 +134,7 @@ public class PropertyService {
     }
 
     @Transactional(readOnly = true)
-    @PreAuthorize("hasRole('ADMIN') or @propertySecurity.isOwner(#ownerId, authentication.name)") // TODO check if this is correct    public Page<PropertyDto> getPropertiesByOwner(Long ownerId, Pageable pageable) {
-    // TODO need to check if this is correct as intended
+    @PreAuthorize("hasRole('ADMIN') or @propertySecurity.isOwner(#ownerId, authentication.name)")
     public Page<PropertyDto> getPropertiesByOwner(Long ownerId, Pageable pageable) {
         return propertyRepository.findByOwnerId(ownerId, pageable)
                 .map(propertyMapper::toDto);

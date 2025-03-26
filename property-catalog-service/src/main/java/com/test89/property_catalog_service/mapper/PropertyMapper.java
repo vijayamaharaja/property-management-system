@@ -46,14 +46,22 @@ public class PropertyMapper {
                 .title(property.getTitle())
                 .description(property.getDescription())
                 .type(property.getType())
-                .price(property.getPrice())
+                .pricePerDay(property.getPricePerDay())
                 .bedrooms(property.getBedrooms())
                 .bathrooms(property.getBathrooms())
                 .area(property.getArea())
+                .maxGuests(property.getMaxGuests())
+                .minStayDays(property.getMinStayDays())
+                .maxStayDays(property.getMaxStayDays())
                 .address(addressDto)
                 .amenities(property.getAmenities())
                 .imageUrls(property.getImageUrls())
                 .status(property.getStatus())
+                .petsAllowed(property.getPetsAllowed())
+                .smokingAllowed(property.getSmokingAllowed())
+                .partiesAllowed(property.getPartiesAllowed())
+                .checkInTime(property.getCheckInTime())
+                .checkOutTime(property.getCheckOutTime())
                 .createdAt(property.getCreatedAt())
                 .updatedAt(property.getUpdatedAt())
                 .owner(ownerDto)
@@ -84,14 +92,22 @@ public class PropertyMapper {
                 .title(dto.getTitle())
                 .description(dto.getDescription())
                 .type(dto.getType())
-                .price(dto.getPrice())
+                .pricePerDay(dto.getPricePerDay())
                 .bedrooms(dto.getBedrooms())
                 .bathrooms(dto.getBathrooms())
                 .area(dto.getArea())
+                .maxGuests(dto.getMaxGuests())
+                .minStayDays(dto.getMinStayDays())
+                .maxStayDays(dto.getMaxStayDays())
                 .address(address)
                 .amenities(dto.getAmenities())
                 .imageUrls(dto.getImageUrls())
                 .status(dto.getStatus())
+                .petsAllowed(dto.getPetsAllowed())
+                .smokingAllowed(dto.getSmokingAllowed())
+                .partiesAllowed(dto.getPartiesAllowed())
+                .checkInTime(dto.getCheckInTime())
+                .checkOutTime(dto.getCheckOutTime())
                 .owner(owner)
                 .build();
     }
@@ -104,11 +120,19 @@ public class PropertyMapper {
         property.setTitle(dto.getTitle());
         property.setDescription(dto.getDescription());
         property.setType(dto.getType());
-        property.setPrice(dto.getPrice());
+        property.setPricePerDay(dto.getPricePerDay());
         property.setBedrooms(dto.getBedrooms());
         property.setBathrooms(dto.getBathrooms());
         property.setArea(dto.getArea());
+        property.setMaxGuests(dto.getMaxGuests());
+        property.setMinStayDays(dto.getMinStayDays());
+        property.setMaxStayDays(dto.getMaxStayDays());
         property.setStatus(dto.getStatus());
+        property.setPetsAllowed(dto.getPetsAllowed());
+        property.setSmokingAllowed(dto.getSmokingAllowed());
+        property.setPartiesAllowed(dto.getPartiesAllowed());
+        property.setCheckInTime(dto.getCheckInTime());
+        property.setCheckOutTime(dto.getCheckOutTime());
 
         if (dto.getAmenities() != null) {
             property.setAmenities(dto.getAmenities());

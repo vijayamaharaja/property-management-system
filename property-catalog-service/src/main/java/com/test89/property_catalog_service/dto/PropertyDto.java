@@ -28,13 +28,17 @@ public class PropertyDto {
     @NotBlank(message = "Property type is required")
     private String type;
 
-    @NotNull(message = "Price is required")
-    @Positive(message = "Price must be positive")
-    private BigDecimal price;
+    @NotNull(message = "Price per day is required")
+    @Positive(message = "Price per day must be positive")
+    private BigDecimal pricePerDay;
 
     private Integer bedrooms;
     private Integer bathrooms;
     private Double area;
+
+    private Integer maxGuests;
+    private Integer minStayDays;
+    private Integer maxStayDays;
 
     @NotNull(message = "Address is required")
     private AddressDto address;
@@ -44,6 +48,13 @@ public class PropertyDto {
 
     @NotBlank(message = "Status is required")
     private String status;
+
+    // Property rules and policies
+    private Boolean petsAllowed;
+    private Boolean smokingAllowed;
+    private Boolean partiesAllowed;
+    private String checkInTime;
+    private String checkOutTime;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

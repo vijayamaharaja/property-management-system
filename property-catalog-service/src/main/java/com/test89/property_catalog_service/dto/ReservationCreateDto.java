@@ -28,8 +28,12 @@ public class ReservationCreateDto {
     @Future(message = "Check-out date must be in the future")
     private LocalDate checkOutDate;
 
-    private String specialRequests;
-
+    @NotNull(message = "Number of guests is required")
     @Positive(message = "Guest count must be positive")
     private Integer guestCount;
+
+    private String specialRequests;
+
+    // Payment information
+    private String paymentMethod;
 }
