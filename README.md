@@ -39,14 +39,14 @@ You may need to apply appropriate permissions to the script chmod +x ./setup-hoo
 
 # Security Implementation
 
-- OAuth2 Authorization Server configured for:
+- ~~OAuth2 Authorization Server configured for:~~
 
-  - Authorization Code flow
-  - Refresh Token
-  - Client Credentials
+  - ~~Authorization Code flow~~
+  - ~~Refresh Token~~
+  - ~~Client Credentials~~
 
 
-- Resource Server setup with JWT validation
+- ~~Resource Server setup with JWT validation~~
 - Proper role-based access controls
 - Password encryption with BCrypt
 
