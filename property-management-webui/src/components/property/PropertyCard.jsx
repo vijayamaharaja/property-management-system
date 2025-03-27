@@ -21,12 +21,22 @@ const PropertyCard = ({ property, checkInDate, checkOutDate, guests }) => {
     }
   };
 
+  // Make sure the property has all needed fields to prevent rendering errors
+  if (!property) {
+    return null;
+  }
+
+  // Get the first image URL or use a placeholder
+  const imageUrl = property.imageUrls && property.imageUrls.length > 0 
+    ? property.imageUrls[0] 
+    : '/images/property-placeholder.jpg';
+
   return (
     <Card className="h-100 shadow-sm hover-shadow">
       <div className="position-relative">
         <Card.Img 
           variant="top" 
-          src={property.imageUrls[0] || '/images/property-placeholder.jpg'} 
+          src={imageUrl}
           alt={property.title}
           style={{ height: '200px', objectFit: 'cover' }}
         />
@@ -46,10 +56,12 @@ const PropertyCard = ({ property, checkInDate, checkOutDate, guests }) => {
       <Card.Body className="d-flex flex-column">
         <div className="d-flex justify-content-between align-items-start">
           <Card.Title className="mb-1">{property.title}</Card.Title>
-          <div className="ms-2 fs-5 fw-bold text-primary">£{property.price}</div>
+          <div className="ms-2 fs-5 fw-bold text-primary">
+            £{property.pricePerDay || 'N/A'}
+          </div>
         </div>
         <Card.Text className="text-muted small mb-2">
-          {property.address.city}, {property.address.country}
+          {property.address?.city}, {property.address?.country}
         </Card.Text>
         
         <Row className="gx-2 mb-3 text-muted small">
@@ -85,7 +97,7 @@ const PropertyCard = ({ property, checkInDate, checkOutDate, guests }) => {
         <div className="d-flex mt-auto">
           <Button 
             as={Link} 
-            to={`/properties/public/${property.id}`} 
+            to={`/properties/${property.id}`} 
             variant="outline-primary" 
             className="me-2 flex-grow-1"
           >

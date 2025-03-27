@@ -16,10 +16,14 @@ const getUserReservations = async (params = {}) => {
 };
 
 const getUpcomingReservations = async (params = {}) => {
-  const response = await api.get('/reservations/user/upcoming', { params });
-  return response.data;
+  try {
+    const response = await api.get('/reservations/upcoming', { params });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching upcoming reservations:', error);
+    throw error;
+  }
 };
-
 const cancelReservation = async (reservationId) => {
   const response = await api.patch(`/reservations/${reservationId}/cancel`);
   return response.data;

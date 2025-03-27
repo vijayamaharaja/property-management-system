@@ -1,0 +1,21 @@
+version: '3'
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/universal:2
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+    network_mode: service:db
+
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: secret
+      POSTGRES_USER: postgres
+      POSTGRES_DB: property_management_db
+
+volumes:
+  postgres-data:

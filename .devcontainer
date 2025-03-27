@@ -1,0 +1,29 @@
+{
+  "name": "Property Management System Dev Environment",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [3001, 8080],
+  "portsAttributes": {
+    "3001": {
+      "label": "Frontend",
+      "onAutoForward": "openPreview"
+    },
+    "8080": {
+      "label": "Backend API"
+    }
+  },
+  "postCreateCommand": "sh ./.devcontainer/setup.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-spring-boot-dashboard",
+        "vscjava.vscode-maven",
+        "redhat.java",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  }
+}

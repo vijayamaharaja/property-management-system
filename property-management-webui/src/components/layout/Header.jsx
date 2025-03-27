@@ -14,8 +14,12 @@ const Header = () => {
     navigate('/');
   };
 
-  const isAdmin = user?.roles?.includes('ROLE_ADMIN');
-  const isPropertyOwner = isAdmin || user?.roles?.includes('ROLE_OWNER');
+  // Safely check if user exists and has required properties
+  const userName = user ? (user.firstName || user.username || 'User') : 'User';
+  
+  // Safely check for user roles
+  const isAdmin = user && user.roles && user.roles.includes('ROLE_ADMIN');
+  const isPropertyOwner = isAdmin || (user && user.roles && user.roles.includes('ROLE_OWNER'));
 
   return (
     <Navbar bg="light" expand="lg" className="mb-4 shadow-sm">
@@ -43,7 +47,7 @@ const Header = () => {
           </Nav>
           <Nav>
             {isAuthenticated ? (
-              <NavDropdown title={`Hello, ${user.firstName || user.username}`} id="user-dropdown">
+              <NavDropdown title={`Hello, ${userName}`} id="user-dropdown">
                 <NavDropdown.Item as={Link} to="/dashboard">Dashboard</NavDropdown.Item>
                 <NavDropdown.Item as={Link} to="/dashboard/reservations">My Reservations</NavDropdown.Item>
                 {isPropertyOwner && (
@@ -77,28 +81,3 @@ const Header = () => {
 };
 
 export default Header;
-
-
-// import React from 'react';
-// import { Navbar, Container, Nav } from 'react-bootstrap';
-// import { Link } from 'react-router-dom';
-
-// const Header = () => {
-//   return (
-//     <Navbar bg="light" expand="lg">
-//       <Container>
-//         <Navbar.Brand as={Link} to="/">Property Management</Navbar.Brand>
-//         <Navbar.Toggle aria-controls="basic-navbar-nav" />
-//         <Navbar.Collapse id="basic-navbar-nav">
-//           <Nav className="ms-auto">
-//             <Nav.Link as={Link} to="/">Home</Nav.Link>
-//             <Nav.Link as={Link} to="/login">Login</Nav.Link>
-//             <Nav.Link as={Link} to="/register">Register</Nav.Link>
-//           </Nav>
-//         </Navbar.Collapse>
-//       </Container>
-//     </Navbar>
-//   );
-// };
-
-// export default Header;

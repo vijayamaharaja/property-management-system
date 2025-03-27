@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Row, Col, Button, Spinner, Alert, Image, Card, Badge, Tabs, Tab, Modal } from 'react-bootstrap';
+import { Container, Row, Col, Button, Spinner, Alert, Card, Badge, Tabs, Tab, Modal } from 'react-bootstrap';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchPropertyDetails } from '../redux/slices/propertySlice';
@@ -46,12 +46,6 @@ const PropertyDetailsPage = () => {
     }
   };
 
-  const handleLoginConfirm = () => {
-    const returnUrl = `/book/${propertyId}?checkInDate=${searchParams.get('checkInDate') || ''}&checkOutDate=${searchParams.get('checkOutDate') || ''}&guests=${guests}`;
-    navigate(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
-    setShowLoginModal(false);
-  };
-
   if (loading) {
     return (
       <Container className="my-5 text-center">
@@ -90,7 +84,9 @@ const PropertyDetailsPage = () => {
           <h1 className="mb-2">{property.title}</h1>
           <div className="d-flex align-items-center mb-3">
             <FaMapMarkerAlt className="text-primary me-2" />
-            <span>{property.address.street}, {property.address.city}, {property.address.country}</span>
+            <span>
+              {property.address?.street}, {property.address?.city}, {property.address?.country}
+            </span>
             
             {property.status === 'Available' ? (
               <Badge bg="success" className="ms-3">Available</Badge>
@@ -104,7 +100,10 @@ const PropertyDetailsPage = () => {
           {/* Property Images and Details */}
           <Col lg={8} className="mb-4">
             {/* Image Gallery */}
-            <PropertyImageGallery images={property.imageUrls} title={property.title} />
+            <PropertyImageGallery 
+              images={property.imageUrls || []} 
+              title={property.title} 
+            />
             
             {/* Property Features */}
             <Card className="mb-4 shadow-sm">
@@ -188,11 +187,12 @@ const PropertyDetailsPage = () => {
                 <div className="p-3">
                   <h4 className="mb-3">Location</h4>
                   <p>
-                    <strong>Address:</strong> {property.address.street}, {property.address.city}, {property.address.state} {property.address.postalCode}, {property.address.country}
+                    <strong>Address:</strong> {property.address?.street}, {property.address?.city}, 
+                    {property.address?.state} {property.address?.postalCode}, {property.address?.country}
                   </p>
                   
                   {/* Map Component */}
-                  {property.address.latitude && property.address.longitude && (
+                  {property.address?.latitude && property.address?.longitude && (
                     <div style={{ height: '400px', width: '100%' }}>
                       <PropertyMap 
                         latitude={property.address.latitude} 
@@ -218,16 +218,9 @@ const PropertyDetailsPage = () => {
               <Card.Body>
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <div>
-                    <span className="fs-3 fw-bold">£{property.price}</span>
+                    <span className="fs-3 fw-bold">£{property.pricePerDay}</span>
                     <span className="text-muted"> / night</span>
                   </div>
-                  
-                  {property.rating && (
-                    <div className="d-flex align-items-center">
-                      <span className="me-1">★</span>
-                      <span>{property.rating.toFixed(1)}</span>
-                    </div>
-                  )}
                 </div>
                 
                 {/* Reservation Form */}
@@ -236,7 +229,7 @@ const PropertyDetailsPage = () => {
                   initialCheckInDate={checkInDate}
                   initialCheckOutDate={checkOutDate}
                   initialGuests={guests}
-                  price={property.price}
+                  price={property.pricePerDay}
                   maxGuests={property.maxGuests}
                   onBookNow={handleBookNow}
                   isAuthenticated={isAuthenticated}
@@ -248,22 +241,11 @@ const PropertyDetailsPage = () => {
       </Container>
       
       {/* Login Prompt Modal */}
-      <Modal show={showLoginModal} onHide={() => setShowLoginModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Login Required</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>You need to login or register to book this property.</p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowLoginModal(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleLoginConfirm}>
-            Login / Register
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <LoginPromptModal 
+        show={showLoginModal} 
+        onHide={() => setShowLoginModal(false)} 
+        returnUrl={`/book/${propertyId}?checkInDate=${searchParams.get('checkInDate') || ''}&checkOutDate=${searchParams.get('checkOutDate') || ''}&guests=${guests}`}
+      />
     </>
   );
 };

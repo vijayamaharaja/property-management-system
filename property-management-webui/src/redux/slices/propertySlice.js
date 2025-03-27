@@ -3,15 +3,20 @@ import propertyService from '../../services/propertyService';
 
 // Fetch properties with search criteria
 export const searchProperties = createAsyncThunk(
-    'properties/public/search',
-    async (searchParams, { rejectWithValue }) => {
-      try {
-        return await propertyService.searchProperties(searchParams);
-      } catch (error) {
-        return rejectWithValue(error.response?.data?.message || 'Failed to search properties');
-      }
+  'properties/search',
+  async (searchParams, { rejectWithValue }) => {
+    try {
+      const response = await propertyService.searchProperties(searchParams);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 
+        error.message || 
+        'Failed to search properties'
+      );
     }
-  );
+  }
+);
   
   // Fetch property details by ID
   export const fetchPropertyDetails = createAsyncThunk(
@@ -247,15 +252,15 @@ export const searchProperties = createAsyncThunk(
         })
         .addCase(searchProperties.fulfilled, (state, action) => {
           state.search.loading = false;
-          state.search.properties = action.payload.content;
-          state.search.totalPages = action.payload.totalPages;
-          state.search.currentPage = action.payload.number;
+          state.search.properties = action.payload.content || [];
+          state.search.totalPages = action.payload.totalPages || 0;
+          state.search.currentPage = action.payload.number || 0;
         })
         .addCase(searchProperties.rejected, (state, action) => {
           state.search.loading = false;
-          state.search.error = action.payload;
+          state.search.error = action.payload || 'An error occurred while searching properties';
         })
-        // Fetch property details
+                // Fetch property details
         .addCase(fetchPropertyDetails.pending, (state) => {
           state.details.loading = true;
           state.details.error = null;

@@ -10,7 +10,8 @@ const login = async (credentials) => {
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
     }
-    return response.data.user;
+    return response.data;  
+    
   } catch (error) {
     if (!error.response) {
       throw new Error('Network error: Could not connect to the server. Please check your connection or try again later.');
@@ -25,7 +26,7 @@ const register = async (userData) => {
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
     }
-    return response.data.user;
+    return response.data;
   } catch (error) {
     if (!error.response) {
       throw new Error('Network error: Could not connect to the server. Please check your connection or try again later.');

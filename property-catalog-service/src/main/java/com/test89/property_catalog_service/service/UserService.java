@@ -10,6 +10,8 @@ import com.test89.property_catalog_service.exception.UserAlreadyExistsException;
 import com.test89.property_catalog_service.mapper.UserMapper;
 import com.test89.property_catalog_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +24,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class UserService {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final EmailService emailService;
@@ -29,27 +33,48 @@ public class UserService {
 
     @Transactional
     public UserDto registerUser(UserRegistrationDto registrationDto) {
+        logger.debug("Starting registration process for: {}", registrationDto.getUsername());
         if (userRepository.existsByUsername(registrationDto.getUsername())) {
+            logger.warn("Username already exists: {}", registrationDto.getUsername());
             throw new UserAlreadyExistsException("Username already exists: " + registrationDto.getUsername());
         }
 
+        logger.debug("Checking if email exists: {}", registrationDto.getEmail());
         if (userRepository.existsByEmail(registrationDto.getEmail())) {
+            logger.warn("Email already exists: {}", registrationDto.getEmail());
             throw new UserAlreadyExistsException("Email already exists: " + registrationDto.getEmail());
         }
 
-        User user = userMapper.fromRegistrationDto(registrationDto);
-        if (user.getRoles() == null || user.getRoles().isEmpty()) {
-            user.setRoles(Set.of("ROLE_USER"));
+        try {
+            logger.debug("Converting DTO to entity");
+            User user = userMapper.fromRegistrationDto(registrationDto);
+
+            logger.debug("Setting default roles if needed");
+            if (user.getRoles() == null || user.getRoles().isEmpty()) {
+                user.setRoles(Set.of("ROLE_USER"));
+            }
+
+            logger.debug("Saving user to database");
+            User savedUser = userRepository.save(user);
+
+            logger.debug("Sending welcome email");
+            try {
+                emailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getFirstName());
+            } catch (Exception e) {
+                logger.warn("Failed to send welcome email", e);
+                // Continue with registration even if email fails
+            }
+
+            logger.debug("Generating JWT token");
+            String token = userMapper.generateToken(savedUser);
+
+            logger.debug("Converting saved user to DTO");
+            return userMapper.toDto(savedUser, token);
+        } catch (Exception e) {
+            logger.error("Unexpected error during user registration", e);
+            throw e;
         }
-        User savedUser = userRepository.save(user);
 
-        // send welcome email to new user
-        emailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getFirstName());
-
-        // Generate JWT token
-        String token = userMapper.generateToken(savedUser);
-
-        return userMapper.toDto(savedUser, token);
     }
 
     @Transactional(readOnly = true)

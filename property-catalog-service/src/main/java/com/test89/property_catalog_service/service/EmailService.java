@@ -2,6 +2,7 @@ package com.test89.property_catalog_service.service;
 
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.mail.MailAuthenticationException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -32,8 +33,9 @@ public class EmailService {
             helper.setSubject(subject);
             helper.setText(htmlBody, true); // true = HTML
             mailSender.send(message);
+        } catch (MailAuthenticationException e) {
+            throw new RuntimeException("Email authentication failed. Check your credentials.", e);
         } catch (MessagingException e) {
-            // TODO: Need to handle failure
             throw new RuntimeException("Failed to send email: " + subject, e);
         }
     }

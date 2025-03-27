@@ -12,6 +12,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +28,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Authentication", description = "User authentication and registration endpoints")
 public class AuthController {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
     private final UserService userService;
 
     @Operation(summary = "Register a new user")
@@ -38,8 +42,16 @@ public class AuthController {
     })
     public ResponseEntity<UserDto> registerUser(
             @Valid @RequestBody UserRegistrationDto registrationDto) {
-        UserDto registeredUser = userService.registerUser(registrationDto);
-        return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
+        logger.debug("Received registration request for username: {}", registrationDto.getUsername());
+
+        try {
+            UserDto registeredUser = userService.registerUser(registrationDto);
+            logger.debug("Successfully registered user: {}", registrationDto.getUsername());
+            return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
+        } catch (Exception e) {
+            logger.error("Error registering user: {}", registrationDto.getUsername(), e);
+            throw e; // Letting the global exception handler deal with it
+        }
     }
 
     @Operation(summary = "Authenticate user and generate token")

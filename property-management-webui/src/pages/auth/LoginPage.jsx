@@ -12,7 +12,7 @@ const LoginPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const returnUrl = searchParams.get('returnUrl') || '/dashboard';
+  const returnUrl = searchParams.get('returnUrl') || '/';
   
   const { isAuthenticated, loading, error } = useSelector(state => state.auth);
   
@@ -26,7 +26,7 @@ const LoginPage = () => {
     dispatch(clearError());
   }, [isAuthenticated, navigate, dispatch, returnUrl]);
   
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
     
@@ -36,7 +36,14 @@ const LoginPage = () => {
       return;
     }
     
-    dispatch(login({ username, password }));
+    try {
+      await dispatch(login({ username, password })).unwrap();
+      // Successfully logged in, now navigate
+      navigate(returnUrl);
+    } catch (error) {
+      // Error is already handled by the rejected action
+      console.error('Login failed:', error);
+    }
   };
   
   return (

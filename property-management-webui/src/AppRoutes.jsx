@@ -28,7 +28,11 @@ const AppRoutes = () => {
       {/* Public routes */}
       <Route path="/" element={<HomePage />} />
       <Route path="/properties" element={<PropertySearchPage />} />
+      
+      {/* Fix for property details path */}
       <Route path="/properties/:propertyId" element={<PropertyDetailsPage />} />
+      <Route path="/property/:propertyId" element={<PropertyDetailsPage />} />
+      
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       

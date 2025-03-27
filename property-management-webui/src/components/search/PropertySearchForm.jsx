@@ -3,6 +3,7 @@ import { Form, Button, Row, Col, Card } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { formatDate } from '../../utils/dateUtils';
 
 const PropertySearchForm = ({ isHeroForm = false }) => {
   const navigate = useNavigate();
@@ -22,8 +23,8 @@ const PropertySearchForm = ({ isHeroForm = false }) => {
     // Build query params
     const params = new URLSearchParams();
     if (location) params.append('city', location);
-    if (checkInDate) params.append('checkInDate', checkInDate.toISOString().split('T')[0]);
-    if (checkOutDate) params.append('checkOutDate', checkOutDate.toISOString().split('T')[0]);
+    if (checkInDate) params.append('checkInDate', formatDate(checkInDate));
+    if (checkOutDate) params.append('checkOutDate', formatDate(checkOutDate));
     if (guests > 1) params.append('guests', guests);
     if (bedrooms) params.append('bedrooms', bedrooms);
     if (minPrice) params.append('minPrice', minPrice);
