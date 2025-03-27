@@ -89,5 +89,5 @@ You may need to apply appropriate permissions to the script chmod +x ./setup-hoo
 
 The application will start with sample users and properties for testing. You can use the following credentials:
 
-- Admin: username admin, password password
-- Regular users: user1 or user2 with password password
+- Admin: username: admin, password: adminPass
+- Regular users: username: user with password: userPass
