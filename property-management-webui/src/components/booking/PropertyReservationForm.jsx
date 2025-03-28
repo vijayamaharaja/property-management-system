@@ -37,7 +37,7 @@ const PropertyReservationForm = ({
     if (availability.isAvailable) {
       dispatch(resetBookingState());
     }
-  }, [dispatch, checkInDate, checkOutDate]);
+  }, [dispatch, checkInDate, checkOutDate, availability.isAvailable]);
   
   // Calculate total nights and price when dates change
   useEffect(() => {
